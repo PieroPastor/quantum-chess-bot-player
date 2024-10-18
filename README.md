@@ -3,7 +3,7 @@
 A neural network that learns to play quantum chess using Monte Carlo tree search. Built from scratch with Cirq, simulating the fascinating world of quantum moves.
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
-![Cirq](https://img.shields.io/badge/Cirq-Library-orange)
+[![Cirq](https://img.shields.io/badge/Cirq-1.4-orange)](https://quantumai.google/cirq)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Table of Contents
