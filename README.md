@@ -10,6 +10,7 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 - [Installation](#installation)
 - [Usage](#usage)
 - [Features](#features)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
@@ -19,3 +20,18 @@ Clone the repository and install the dependencies:
 git clone https://github.com/PieroPastor/quantum-chess-player.git
 cd quantum-chess-player
 pip install -r requirements.txt
+```
+## Usage
+
+## Features
+- Monte Carlo Tree Search for decision making
+- Fully implemented quantum chess mechanics
+- Trained neural network for smart moves
+- Built with Cirq for quantum simulation
+
+## Contributing
+Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute. For major changes, please discuss what you would like to change beforehand to ensure it aligns with the project's goals.
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
