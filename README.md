@@ -7,6 +7,7 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 [![Cirq](https://img.shields.io/badge/Cirq-1.4-orange)](https://quantumai.google/cirq)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Colab](https://img.shields.io/badge/Run%20on-Colab-yellow)](https://colab.research.google.com/)
+[![PyCharm](https://img.shields.io/badge/Developed%20with-PyCharm-blue)](https://www.jetbrains.com/pycharm/)
 
 ## Table of Contents
 - [Installation](#installation)
