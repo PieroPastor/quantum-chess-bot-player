@@ -16,6 +16,6 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 Clone the repository and install the dependencies:
 
 ```bash
-git clone https://github.com/tu-usuario/quantum-chess-player.git
+git clone https://github.com/PieroPastor/quantum-chess-player.git
 cd quantum-chess-player
 pip install -r requirements.txt
