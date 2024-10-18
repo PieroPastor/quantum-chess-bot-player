@@ -33,7 +33,7 @@ class Peon(Pieza):
         xA, yA = origen
         xO, yO = objetivo
         if self.color == BColors.WHITE and yA == yO == tablero.peon_paso[0]: return True
-        if self.color == BColors.BLACK and yA == yO == tablero.peon_paso[0]: return True
+        if self.color == BColors.BLACK and yA == yO == tablero.peon_paso[1]: return True
         return False
 
     def MovimientoValido(self, tablero, origen, objetivo):
