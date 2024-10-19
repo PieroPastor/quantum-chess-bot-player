@@ -48,7 +48,7 @@ class Peon(Pieza):
             if self.CaminoOcupado(origen, objetivo, tablero): return False
             if yA == fila and abs(xA-columna) == 1 and self.EvaluarPaso(origen, objetivo, tablero): return True
             if abs(fila-yA) == 1 and abs(xA-columna) == 1 and destino != '.': #Va a comer a otra pieza
-                if self.color == BColors.WHITE: return "BLACK" in destino
-                if self.color == BColors.BLACK: return "WHITE" in destino
+                if self.color == BColors.WHITE: return BColors.BLACK in destino
+                if self.color == BColors.BLACK: return BColors.WHITE in destino
             if abs(fila-yA) == 1 and xA-columna == 0 and destino == '.': return True #Va a avanzar
         return False

@@ -88,7 +88,19 @@ class Tablero:
         return copy.deepcopy(self)
 
     def MoverPieza(self, origen, destino, turno, es_cuantico=False):
+        xA, yA = origen
+        if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return #Turno será de tipo BColor.WHITE o BColor.BLACK
+        simbolo = self.tablero[yA][xA][5]
+        pieza = None
+        for i in self.piezas:
+            if i.color == turno and i.simbolo == simbolo and [yA, xA] in i.posiciones:
+                pieza = i
+                break #Saca la pieza
+        if not self.MovimientoPermitido(pieza, origen, destino): return #No puede moverse así
+        if not es_cuantico and  pieza.CaminoOcupado(origen, destino, self.tablero): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
         raise NotImplementedError
+
+
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
@@ -107,7 +119,14 @@ class Tablero:
             resultado = medicion[iterador] #El resultado de la medición número iter del qubit número "casilla"
             if resultado: #Sí está ocupada la casilla
                 self.circuito.append(cirq.X(qubit))  # Le da un estado de 1 porque el resultado indica que sí está ahí
-                raise NotImplementedError
+                color = self.tablero[y][x][0:5] #Consigue el color de la pieza
+                simbolo = self.tablero[y][x][5] #La posición 5 de todos los strings indica el tipo de pieza
+                for pieza in self.piezas:
+                    if [y, x] in pieza.posiciones and pieza.color == color and pieza.simbolo == simbolo: #Es la pieza de ese color pero no peon
+                        for pos in pieza.posiciones:
+                            self.tablero[pos[0]][pos[1]] = "." #Limpia en el tablero de strings
+                        pieza.posiciones = [[y,x]] #Setea esa posición como la suya ahora.
+                        break #Ya no necesita recorrer más piezas
             else: self.tablero[y][x] = "." #Está vacío
 
     @staticmethod

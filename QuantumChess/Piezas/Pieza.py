@@ -57,8 +57,8 @@ class Pieza:
             destino = tablero[fila][columna]  # Para saber si el destino está vacío
             if self.CaminoOcupado((yA, xA), objetivo, tablero): return False
             if destino == '.': return True
-            if self.color == BColors.WHITE: return "BLACK" in destino
-            if self.color == BColors.BLACK: return "WHITE" in destino
+            if self.color == BColors.WHITE: return BColors.BLACK in destino
+            if self.color == BColors.BLACK: return BColors.WHITE in destino
         return False
 
     def ReiniciarMovimientos(self, pos):
