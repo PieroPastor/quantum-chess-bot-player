@@ -111,7 +111,7 @@ class Tablero:
             else: self.tablero[y][x] = "." #Está vacío
 
     @staticmethod
-    def _NombreDelGate(operation):
+    def _NombreDelGate(operation): 
         """Obtiene un nombre corto para la operación (por ejemplo, 'H', 'X', 'CZ')."""
         if isinstance(operation.gate, cirq.Gate):
             return str(operation.gate)
