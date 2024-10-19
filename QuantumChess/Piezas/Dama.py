@@ -1,4 +1,4 @@
-from Pieza import *
+from .Pieza import *
 
 class Dama(Pieza):
     def __init__(self, color, pos):

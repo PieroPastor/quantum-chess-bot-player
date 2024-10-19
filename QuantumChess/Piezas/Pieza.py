@@ -1,5 +1,5 @@
 from Utils import *
-from BColors import BColors
+from .BColors import BColors
 
 class Pieza:
     def __init__(self, color, pos):
@@ -21,7 +21,8 @@ class Pieza:
     def PuedeCapturar(self, pieza):
         return isinstance(pieza, Pieza) and self.color != pieza.color
 
-    def Ruta(self, mov):
+    @staticmethod
+    def Ruta(mov):
         yA, xA = mov
 
         if yA < 0: yA = -1
@@ -59,6 +60,9 @@ class Pieza:
             if self.color == BColors.WHITE: return "BLACK" in destino
             if self.color == BColors.BLACK: return "WHITE" in destino
         return False
+
+    def ReiniciarMovimientos(self, pos):
+        self.posiciones = [pos]
 
     def EvaluarPaso(self, origen, objetivo, tablero):
         raise NotImplementedError

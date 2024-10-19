@@ -1,4 +1,8 @@
+import cirq
+from sympy import false
+
 from Piezas import *
+from QubitAdministrator import QubitAdministrator
 
 class Tablero:
     def __init__(self):
@@ -14,33 +18,163 @@ class Tablero:
 
     def InicializarPiezas(self):
         # Inicializamos las piezas de ambos lados
-        # Blancas
-        self.piezas.append([
-            Torre(BColors.BLACK, (0, 0)), Caballo(BColors.BLACK, (0, 1)), Alfil(BColors.BLACK, (0, 2)),
-            Dama(BColors.BLACK, (0, 3)), Rey(BColors.BLACK, (0, 4)),
-            Alfil(BColors.BLACK, (0, 5)), Caballo(BColors.BLACK, (0, 6)), Torre(BColors.BLACK, (0, 7))
-        ])
-        self.piezas.append([Peon(BColors.BLACK, (6, i), 1) for i in range(8)])
-        self.rey_negro = self.piezas[4]  # Guardamos referencia al rey negro
         # Negras
-        self.piezas.append([
-            Torre(BColors.WHITE, (7, 0)), Caballo(BColors.WHITE, (7, 1)), Alfil(BColors.WHITE, (7, 2)),
-            Dama(BColors.WHITE, (7, 3)), Rey(BColors.WHITE, (7, 4)),
-            Alfil(BColors.WHITE, (7, 5)), Caballo(BColors.WHITE, (7, 6)), Torre(BColors.WHITE, (7, 7))
-        ])
-        self.piezas.append([Peon(BColors.WHITE, (1, i), -1) for i in range(8)])
+        self.piezas.append(Torre(BColors.BLACK, (0, 0)))
+        self.piezas.append(Caballo(BColors.BLACK, (0, 1)))
+        self.piezas.append(Alfil(BColors.BLACK, (0, 2)))
+        self.piezas.append(Dama(BColors.BLACK, (0, 3)))
+        self.piezas.append(Rey(BColors.BLACK, (0, 4)))
+        self.piezas.append(Alfil(BColors.BLACK, (0, 5)))
+        self.piezas.append(Caballo(BColors.BLACK, (0, 6)))
+        self.piezas.append(Torre(BColors.BLACK, (0, 7)))
+        for i in range(8): self.piezas.append(Peon(BColors.BLACK, (6, i), 1))
+        self.rey_negro = self.piezas[4]  # Guardamos referencia al rey negro
+        # Blancas
+        self.piezas.append(Torre(BColors.WHITE, (7, 0)))
+        self.piezas.append(Caballo(BColors.WHITE, (7, 1)))
+        self.piezas.append(Alfil(BColors.WHITE, (7, 2)))
+        self.piezas.append(Dama(BColors.WHITE, (7, 3)))
+        self.piezas.append(Rey(BColors.WHITE, (7, 4)))
+        self.piezas.append(Alfil(BColors.WHITE, (7, 5)))
+        self.piezas.append(Caballo(BColors.WHITE, (7, 6)))
+        self.piezas.append(Torre(BColors.WHITE, (7, 7)))
+        for i in range(8): self.piezas.append(Peon(BColors.WHITE, (6, i), -1))
         self.rey_blanco = self.piezas[20]  # Guardamos referencia al rey blanco
 
     def InicializarTableroFisico(self):
-        raise NotImplementedError
+        for i in range(8):
+            aux = []
+            for j in range(8): aux.append(".")
+            self.tablero.append(aux)
+        self.tablero[0] = [
+            f"{BColors.BLACK}R{BColors.RESET}", f"{BColors.BLACK}K{BColors.RESET}", f"{BColors.BLACK}B{BColors.RESET}",
+            f"{BColors.BLACK}Q{BColors.RESET}", f"{BColors.BLACK}E{BColors.RESET}",
+            f"{BColors.BLACK}B{BColors.RESET}", f"{BColors.BLACK}K{BColors.RESET}", f"{BColors.BLACK}R{BColors.RESET}"
+        ]
+        self.tablero[1] = [f"{BColors.BLACK}P{BColors.RESET}" for i in range(8)]
+        # Negras
+        self.tablero[7] = [
+            f"{BColors.WHITE}R{BColors.RESET}", f"{BColors.WHITE}K{BColors.RESET}", f"{BColors.WHITE}B{BColors.RESET}",
+            f"{BColors.WHITE}Q{BColors.RESET}", f"{BColors.WHITE}E{BColors.RESET}",
+            f"{BColors.WHITE}B{BColors.RESET}", f"{BColors.WHITE}K{BColors.RESET}", f"{BColors.WHITE}R{BColors.RESET}"
+        ]
+        self.tablero[6] = [f"{BColors.WHITE}P{BColors.RESET}" for i in range(8)]
 
     def InicializarTableroCuantico(self):
-        raise NotImplementedError
+        self.circuito.append(cirq.X(QubitAdministrator.qubits[i]) for i in range(0,16)) #Inicializa el circuito en 1 para negras
+        self.circuito.append(cirq.reset(QubitAdministrator.qubits[i]) for i in range(16, 48))  # Inicializa el circuito en 0 para vacío
+        self.circuito.append(cirq.X(QubitAdministrator.qubits[i]) for i in range(48, 64))  # Inicializa el circuito en 1 para blancas
 
-    def MovimientoEnLista(self, pieza, origen, destino):
+    @staticmethod
+    def MovimientoPermitido(pieza, origen, destino):
+        # Verifica si un movimiento está permitido para la pieza
         fila_origen, col_origen = origen
         fila_destino, col_destino = destino
         delta_fila = fila_destino - fila_origen
         delta_col = col_destino - col_origen
         return (delta_fila, delta_col) in pieza.movimientos
 
+    def Jaque(self, rey):
+        # Verificamos si alguna pieza enemiga puede atacar la posición del rey
+        for pos in rey.posiciones: #Recorre las posiciones del rey
+            for pieza in self.piezas: #Recorre las piezas
+                if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
+                    for atq in pieza.posiciones: #Revisa las posiciones de la pieza
+                        if pieza.MovimientoValido(self.tablero, atq, pos): return True #Si esa pieza puede moverse hay jaque
+        return False
+
+    def Clon(self):
+        #Retorna un clon de sí mismo
+        return copy.deepcopy(self)
+
+    def MoverPieza(self, origen, destino, turno, es_cuantico=False):
+        raise NotImplementedError
+
+    def ColapsarCasillas(self, casillas):
+        seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
+        operations = [op for op in self.circuito.all_operations() if any(q in seleccionados for q in op.qubits)]
+        medidor = cirq.Circuit(operations)
+        seleccionados = list(medidor.all_qubits()) #Me da todos los qubits involucrados por puertas que controlan y demás
+        sim = cirq.Simulator()
+        result = sim.run(medidor, repetitions=64)  # Hará 64 evaluaciones
+        iterador = random.randint(0, 64)  # Elegirá una de las 64
+        for qubit in seleccionados: #Verá todos los qubits involucrados
+            casilla = qubit.name.replace('q','') #Me da la casilla que está relacionada con el número de qubit
+            y, x = int(casilla/8), casilla%8
+            self.circuito.append(cirq.reset(qubit)) #Resetea el qubit
+            medidor.append(cirq.measure(qubit, f"m{casilla}"))
+            medicion = getattr(result.data, f"m{casilla}")  # Obtener el valor usando getattr
+            resultado = medicion[iterador] #El resultado de la medición número iter del qubit número "casilla"
+            if resultado: #Sí está ocupada la casilla
+                self.circuito.append(cirq.X(qubit))  # Le da un estado de 1 porque el resultado indica que sí está ahí
+                raise NotImplementedError
+            else: self.tablero[y][x] = "." #Está vacío
+
+    @staticmethod
+    def _NombreDelGate(operation):
+        """Obtiene un nombre corto para la operación (por ejemplo, 'H', 'X', 'CZ')."""
+        if isinstance(operation.gate, cirq.Gate):
+            return str(operation.gate)
+        return str(operation)  # Si no es una puerta, devuelve el nombre completo de la operación
+
+    def ImprimirCircuito(self, plot=False):
+        if not plot: print(self.circuito)
+        else:
+            moment_spacing = 5
+            circuit = self.circuito
+            qubits = list(circuit.all_qubits())
+
+            qubit_gate_count = {}
+            for operation in circuit:
+                for qubit in operation.qubits:
+                    if qubit not in qubit_gate_count:
+                        qubit_gate_count[qubit] = 0
+                    qubit_gate_count[qubit] += 1
+
+            # Obtener la cantidad máxima de compuertas por qubit
+            max_gates = max(qubit_gate_count.values()) #Para regular el máximo len
+            fig, ax = plt.subplots(figsize=(max_gates+5, 64))
+
+            # Definir las posiciones de los qubits en el eje y
+            y_positions = {q: i for i, q in enumerate(qubits)}
+
+            # Dibujar los qubits como líneas horizontales
+            for qubit in qubits:
+                ax.hlines(y=y_positions[qubit], xmin=0, xmax=moment_spacing * len(circuit), color='black', linewidth=2)
+
+            # Dibujar las operaciones del circuito
+            for moment_index, moment in enumerate(circuit):
+                for operation in moment:
+                    for qubit in operation.qubits:
+                        y = y_positions[qubit]
+                        # Obtener el nombre corto de la operación
+                        op_text = self._NombreDelGate(operation)
+                        # Ajustar el ancho de la caja según el tamaño del texto
+                        text_width = len(op_text) * 0.2  # Factor para ajustar el ancho de la caja
+                        ax.text(moment_index * moment_spacing + text_width / 2, y, op_text,
+                                ha='center', va='center',
+                                bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.3'))
+
+            # Ajustar los márgenes y la estética del gráfico
+            ax.set_yticks([y_positions[q] for q in qubits])
+            ax.set_yticklabels([str(q) for q in qubits])
+            ax.set_xticks(range(0, moment_spacing * len(circuit), moment_spacing))
+            ax.set_xticklabels([f'Moment {i}' for i in range(len(circuit))])
+            ax.set_xlabel("Moments")
+            ax.set_title("Circuit Diagram")
+
+            # Establecer límites para que el gráfico no se salga del área
+            ax.set_xlim(0, moment_spacing * len(circuit))
+            ax.set_ylim(-0.5, len(qubits) - 0.5)
+
+            # Ajustar los márgenes de la figura
+            plt.tight_layout()
+
+            plt.show()
+
+    def ImprimirTablero(self):
+        for fila in range(8):
+            print(fila + 1, end=" ")  # Números de las filas
+            for col in range(8): print(self.tablero[fila][col], end=" ")
+            print()
+        print("  A B C D E F G H")  # Letras de las columnas
