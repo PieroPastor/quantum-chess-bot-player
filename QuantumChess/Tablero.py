@@ -87,20 +87,67 @@ class Tablero:
         #Retorna un clon de sí mismo
         return copy.deepcopy(self)
 
-    def MoverPieza(self, origen, destino, turno, es_cuantico=False):
-        xA, yA = origen
-        if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return #Turno será de tipo BColor.WHITE o BColor.BLACK
-        simbolo = self.tablero[yA][xA][5]
-        pieza = None
+    def _GetPieza(self, simbolo, turno, y, x): #Busca el símbolo y retorna su respectiva pieza
         for i in self.piezas:
-            if i.color == turno and i.simbolo == simbolo and [yA, xA] in i.posiciones:
-                pieza = i
-                break #Saca la pieza
-        if not self.MovimientoPermitido(pieza, origen, destino): return #No puede moverse así
-        if not es_cuantico and  pieza.CaminoOcupado(origen, destino, self.tablero): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
+            if i.color == turno and i.simbolo == simbolo and [y, x] in i.posiciones:
+                return i
+
+    def _IntercambiarCircuitosQubits(self, qubit0, qubit1):
+        for i, moment in enumerate(self.circuito):
+            new_moment = []
+            for op in moment:
+                # Intercambiar compuertas de un solo qubit
+                if op.qubits == (qubit0,):
+                    new_moment.append(op.with_qubits(qubit1))  # Qubit0 -> Qubit1
+                elif op.qubits == (qubit1,):
+                    new_moment.append(op.with_qubits(qubit0))  # Qubit1 -> Qubit0
+                # Intercambiar compuertas de múltiples qubits (por ejemplo, CISWAP)
+                elif qubit0 in op.qubits or qubit1 in op.qubits:
+                    new_qubits = []
+                    for q in op.qubits:
+                        # Intercambiar qubit0 por qubit1 y viceversa en operaciones de control
+                        if q == qubit0:
+                            new_qubits.append(qubit1)
+                        elif q == qubit1:
+                            new_qubits.append(qubit0)
+                        else:
+                            new_qubits.append(q)
+                    new_moment.append(op.with_qubits(*new_qubits))
+                else:
+                    # Mantener otras operaciones intactas (si las hubiera)
+                    new_moment.append(op)
+
+            # Reemplazar el momento en el circuito original con las operaciones intercambiadas
+            self.circuito[i] = cirq.Moment(new_moment)
+
+    def Split(self, origen, destinos, turno): #Division de una pieza en varios lugares
         raise NotImplementedError
 
+    def Slide(self, origen, destino, turno): #Entrelazamiento con otros lugares
+        raise NotImplementedError
 
+    def Move(self, origen, destino, turno): #Movimiento basico
+        yA, xA = origen
+        yO, xO = destino
+        if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return #Turno será de tipo BColor.WHITE o BColor.BLACK
+        simbolo = self.tablero[yA][xA][5]
+        pieza = self._GetPieza(simbolo, turno, yA, xA)
+        if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
+        #Se analiza si va a comer o no
+        if self.tablero[yO][xO] == ".": #En caso no coma se intercambian circuitos entre inicio y fin
+            pieza.RegistrarMovimiento(origen, destino)
+            self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
+        else:
+            # Si va a comer se llamará a colapso de todas las casillas involucradas con el que va a comer y el comido. Luego si se mantienen posiciones come, sino no.
+            atacado = self._GetPieza(self.tablero[yO][xO], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yO, xO)
+            self.ColapsarCasillas(pieza.posiciones+atacado.posiciones) #Colapsará todo lo relacionado a esas casillas
+            #Ahora tomará como origen el camino desde donde colapsó la pieza
+            origen = pieza.posiciones[0]
+            yA, xA = origen
+            if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No se pudo mover tras el colapso
+            pieza.RegistrarMovimiento(origen, destino) #Registra el movimiento
+            if self.tablero[yO][xO] != ".": raise NotImplementedError
+            else: self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
