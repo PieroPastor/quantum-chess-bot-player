@@ -18,3 +18,6 @@ class Caballo(Pieza):
         self.movimientos.append((1, -2))
         self.movimientos.append((-1, 2))
         self.movimientos.append((-1, -2))
+
+    def CaminoOcupado(self, origen, objetivo, tablero):
+        return False #El caballo no necesita la evaluación

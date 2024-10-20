@@ -27,7 +27,7 @@ class Tablero:
         self.piezas.append(Alfil(BColors.BLACK, (0, 5)))
         self.piezas.append(Caballo(BColors.BLACK, (0, 6)))
         self.piezas.append(Torre(BColors.BLACK, (0, 7)))
-        for i in range(8): self.piezas.append(Peon(BColors.BLACK, (6, i), 1))
+        for i in range(8): self.piezas.append(Peon(BColors.BLACK, (1, i), 1))
         self.rey_negro = self.piezas[4]  # Guardamos referencia al rey negro
         # Blancas
         self.piezas.append(Torre(BColors.WHITE, (7, 0)))
@@ -89,7 +89,7 @@ class Tablero:
 
     def _GetPieza(self, simbolo, turno, y, x): #Busca el símbolo y retorna su respectiva pieza
         for i in self.piezas:
-            if i.color == turno and i.simbolo == simbolo and [y, x] in i.posiciones:
+            if i.color == turno and i.simbolo == simbolo and (y, x) in i.posiciones:
                 return i
 
     def _IntercambiarCircuitosQubits(self, qubit0, qubit1):
@@ -135,8 +135,10 @@ class Tablero:
         if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
         #Se analiza si va a comer o no
         if self.tablero[yO][xO] == ".": #En caso no coma se intercambian circuitos entre inicio y fin
-            pieza.RegistrarMovimiento(origen, destino)
+            pieza.RegistrarMovimiento(tuple(origen), tuple(destino))
             self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
+            self.tablero[yA][xA] = "."
+            self.tablero[yO][xO] = turno+simbolo+BColors.RESET
         else:
             # Si va a comer se llamará a colapso de todas las casillas involucradas con el que va a comer y el comido. Luego si se mantienen posiciones come, sino no.
             atacado = self._GetPieza(self.tablero[yO][xO], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yO, xO)
@@ -145,7 +147,7 @@ class Tablero:
             origen = pieza.posiciones[0]
             yA, xA = origen
             if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No se pudo mover tras el colapso
-            pieza.RegistrarMovimiento(origen, destino) #Registra el movimiento
+            pieza.RegistrarMovimiento(tuple(origen), tuple(destino)) #Registra el movimiento
             if self.tablero[yO][xO] != ".": raise NotImplementedError
             else: self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
 

@@ -33,7 +33,6 @@ class Pieza:
         return yA, xA
 
     def CaminoOcupado(self, origen, objetivo, tablero):
-        if isinstance(self, Caballo): return False #Si es caballo no necesita el análisis
         yA, xA = origen
         yO, xO = objetivo
         if yA-yO == 0:

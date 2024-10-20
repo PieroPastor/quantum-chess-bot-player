@@ -11,12 +11,12 @@ class Peon(Pieza):
         else: raise NotImplementedError
 
     def CargaMovimiento(self):
-        if self.color == BColors.BLACK:
+        if self.color == BColors.WHITE:
             self.movimientos.append((-1, 0))  # Avance
             self.movimientos.append((-1, 1))  # Abajo derecha (come pieza contraria)
             self.movimientos.append((-1, -1))  # Abajo izquierda(come pieza contraria)
             self.movimientos.append((-2, 0))  # Avance
-        if self.color == BColors.WHITE:
+        if self.color == BColors.BLACK:
             self.movimientos.append((2, 0))  # Avance
             self.movimientos.append((1, 0))  # Avance
             self.movimientos.append((1, 1))  # arriba derecha (come pieza contraria)
