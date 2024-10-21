@@ -84,7 +84,7 @@ class Tablero:
             for pieza in self.piezas: #Recorre las piezas
                 if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
-                        if pieza.MovimientoValido(self.tablero, atq, pos): return True #Si esa pieza puede moverse hay jaque
+                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(self.tablero, atq, pos): return True #Si esa pieza puede moverse hay jaque
         return False
 
     def Clon(self):
@@ -124,15 +124,15 @@ class Tablero:
             # Reemplazar el momento en el circuito original con las operaciones intercambiadas
             self.circuito[i] = cirq.Moment(new_moment)
 
-    def _DejaEnJaque(self, pieza, rey, origen, destino):
+    def _DejaEnJaque(self, p, rey, origen, destino):
         copia = copy.deepcopy(self.tablero)
         copia[origen[0]][origen[1]] = "."
-        copia[destino[0]][destino[1]] = pieza.color+pieza.simbolo+BColors.RESET #Copia para simular el movimiento superficialmente
+        copia[destino[0]][destino[1]] = p.color+p.simbolo+BColors.RESET #Copia para simular el movimiento superficialmente
         for pos in rey.posiciones: #Recorre las posiciones del rey
             for pieza in self.piezas: #Recorre las piezas
                 if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
-                        if pieza.MovimientoValido(copia, atq, pos): return True #Si esa pieza puede moverse hay jaque
+                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos): return True #Si esa pieza puede moverse hay jaque
         return False
 
     def _DesaparecerPieza(self, simbolo, turno, y, x):
@@ -207,14 +207,16 @@ class Tablero:
         operations = [op for op in self.circuito.all_operations() if any(q in seleccionados for q in op.qubits)]
         medidor = cirq.Circuit(operations)
         seleccionados = list(medidor.all_qubits()) #Me da todos los qubits involucrados por puertas que controlan y demás
+        for qubit in seleccionados:
+            casilla = qubit.name.replace('q', '')  # Me da la casilla que está relacionada con el número de qubit
+            medidor.append(cirq.measure(qubit, key=f"m{casilla}"))
         sim = cirq.Simulator()
         result = sim.run(medidor, repetitions=64)  # Hará 64 evaluaciones
         iterador = random.randint(0, 64)  # Elegirá una de las 64
         for qubit in seleccionados: #Verá todos los qubits involucrados
-            casilla = qubit.name.replace('q','') #Me da la casilla que está relacionada con el número de qubit
+            casilla = int(qubit.name.replace('q', ''))  # Me da la casilla que está relacionada con el número de qubit
             y, x = int(casilla/8), casilla%8
             self.circuito.append(cirq.reset(qubit)) #Resetea el qubit
-            medidor.append(cirq.measure(qubit, f"m{casilla}"))
             medicion = getattr(result.data, f"m{casilla}")  # Obtener el valor usando getattr
             resultado = medicion[iterador] #El resultado de la medición número iter del qubit número "casilla"
             if resultado: #Sí está ocupada la casilla
@@ -228,6 +230,7 @@ class Tablero:
                         pieza.posiciones = [[y,x]] #Setea esa posición como la suya ahora.
                         break #Ya no necesita recorrer más piezas
             else: self.tablero[y][x] = "." #Está vacío
+
 
     @staticmethod
     def _NombreDelGate(operation): 

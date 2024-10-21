@@ -38,15 +38,15 @@ class Pieza:
         if yA-yO == 0:
             aux = abs(xA - xO)
             for i in range(1, aux):
-                if tablero[yA][xA+((xO < xA)*-1)*i] != '.': return True
+                if tablero[yA][xA+((xO < xA)*-1)*2*i+i] != '.': return True
         elif xA-xO == 0:
             aux = abs(yA - yO)
             for i in range(1, aux):
-                if tablero[yA+((yO < yA)*-1)*i][xA] != '.': return True
+                if tablero[yA+((yO < yA)*-1)*2*i+i][xA] != '.': return True
         else:
             distancia = int(math.sqrt((yA - yO) ** 2 + (xA - xO) ** 2))
             for i in range(1, distancia):
-                if tablero[yA + ((yO < yA) * -1) * i][xA + ((xO < xA) * -1) * i] != '.': return True
+                if tablero[yA + ((yO < yA) * -1)*2*i+i][xA + ((xO < xA) * -1)*2*i+i] != '.': return True
         return False
 
     def MovimientoValido(self, tablero, origen, objetivo):
