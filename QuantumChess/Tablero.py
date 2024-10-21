@@ -147,12 +147,12 @@ class Tablero:
     def _CoronarPeon(self, ha_colapsado, origen, destino, pieza, especial=None):
         peticion = ""
         while peticion.upper() not in ["R", "K", "Q", "B"] and especial == None:
-            peticion = str(input("Ingrese su coronación: "))
-            if peticion.upper() not in ["R", "K", "Q", "B"]: print("Pieza no disponible")
+            peticion = str(input("Ingrese su coronación: ")).upper()
+            if peticion not in ["R", "K", "Q", "B"]: print("Pieza no disponible")
         if especial != None: peticion = especial #Especial será cuando el string lo mande el algoritmo de entrenamiento
         if not ha_colapsado:
             self.ColapsarCasillas(pieza.posiciones)
-            if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return pieza #Al final no se movio
+            if not self.MovimientoPermitido(pieza, pieza.posiciones[0], destino) or pieza.CaminoOcupado(pieza.posiciones[0], destino, self.tablero): return pieza #Al final no se movio
         aux = pieza
         match peticion:
             case "R": pieza = Torre(aux.color, aux.posiciones[0])
@@ -162,6 +162,7 @@ class Tablero:
         pieza.contadorMovimientos = aux.contadorMovimientos
         for i in range(32):
             if self.piezas[i] == aux: self.piezas[i] = pieza #Cambia el objeto
+        return pieza
 
     def Split(self, origen, destinos, turno): #Division de una pieza en varios lugares
         raise NotImplementedError
@@ -184,7 +185,8 @@ class Tablero:
         if self.tablero[yO][xO] == ".": #En caso no coma se intercambian circuitos entre inicio y fin
             if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(False, origen, destino, pieza)
             pieza.RegistrarMovimiento(tuple(origen), tuple(destino))
-            self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
+            #self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
         else:
             # Si va a comer se llamará a colapso de todas las casillas involucradas con el que va a comer y el comido. Luego si se mantienen posiciones come, sino no.
             atacado = self._GetPieza(self.tablero[yO][xO][5], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yO, xO)
@@ -197,7 +199,8 @@ class Tablero:
             if self.tablero[yO][xO] != ".": #Comerá
                 atacado = self.tablero[yO][xO][5]
                 self._DesaparecerPieza(atacado, turno, yO, xO) #Desaparece a la pieza
-            self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
+            #self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
             if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza)
         self.tablero[yA][xA] = "."
         self.tablero[yO][xO] = turno + pieza.simbolo + BColors.RESET
@@ -212,14 +215,14 @@ class Tablero:
             medidor.append(cirq.measure(qubit, key=f"m{casilla}"))
         sim = cirq.Simulator()
         result = sim.run(medidor, repetitions=64)  # Hará 64 evaluaciones
-        iterador = random.randint(0, 64)  # Elegirá una de las 64
+        iterador = random.randint(0, 63)  # Elegirá una de las 64
         for qubit in seleccionados: #Verá todos los qubits involucrados
             casilla = int(qubit.name.replace('q', ''))  # Me da la casilla que está relacionada con el número de qubit
             y, x = int(casilla/8), casilla%8
             self.circuito.append(cirq.reset(qubit)) #Resetea el qubit
             medicion = getattr(result.data, f"m{casilla}")  # Obtener el valor usando getattr
             resultado = medicion[iterador] #El resultado de la medición número iter del qubit número "casilla"
-            if resultado: #Sí está ocupada la casilla
+            if resultado and self.tablero[y][x] != ".": #Sí está ocupada la casilla
                 self.circuito.append(cirq.X(qubit))  # Le da un estado de 1 porque el resultado indica que sí está ahí
                 color = self.tablero[y][x][0:5] #Consigue el color de la pieza
                 simbolo = self.tablero[y][x][5] #La posición 5 de todos los strings indica el tipo de pieza
