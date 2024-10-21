@@ -1,3 +1,5 @@
+import copy
+
 import cirq
 from sympy import false
 
@@ -12,6 +14,8 @@ class Tablero:
         self.rey_blanco = None
         self.rey_negro = None
         self.peon_paso = [3, 4] #3 para el blanco, y 4 para el negro. Es la fila donde pueden realizar el paso
+        self.puntaje_blancas = 0
+        self.puntaje_negras = 0
         self.InicializarPiezas()
         self.InicializarTableroFisico() #Inicializa el tablero que solo mostrará strings
         self.InicializarTableroCuantico() #Inicializa el tablero cuántico que es el circuito de Cirq
@@ -120,10 +124,52 @@ class Tablero:
             # Reemplazar el momento en el circuito original con las operaciones intercambiadas
             self.circuito[i] = cirq.Moment(new_moment)
 
+    def _DejaEnJaque(self, pieza, rey, origen, destino):
+        copia = copy.deepcopy(self.tablero)
+        copia[origen[0]][origen[1]] = "."
+        copia[destino[0]][destino[1]] = pieza.color+pieza.simbolo+BColors.RESET #Copia para simular el movimiento superficialmente
+        for pos in rey.posiciones: #Recorre las posiciones del rey
+            for pieza in self.piezas: #Recorre las piezas
+                if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
+                    for atq in pieza.posiciones: #Revisa las posiciones de la pieza
+                        if pieza.MovimientoValido(copia, atq, pos): return True #Si esa pieza puede moverse hay jaque
+        return False
+
+    def _DesaparecerPieza(self, simbolo, turno, y, x):
+        for pieza in self.piezas:
+            if pieza.color != turno and pieza.simbolo == simbolo and pieza.estaVivo: #Significa que es a quien se le va a comer o probablemente
+                if (y,x) in pieza.posiciones: #Es la pieza a la que se comerá
+                    pieza.estaVivo = False #Se murió la pieza
+                    pieza.posiciones = []
+                    if turno == BColors.WHITE: self.puntaje_blancas += pieza.valorPieza
+                    else: self.puntaje_negras += pieza.valorPieza
+
+    def _CoronarPeon(self, ha_colapsado, origen, destino, pieza, especial=None):
+        peticion = ""
+        while peticion.upper() not in ["R", "K", "Q", "B"] and especial == None:
+            peticion = str(input("Ingrese su coronación: "))
+            if peticion.upper() not in ["R", "K", "Q", "B"]: print("Pieza no disponible")
+        if especial != None: peticion = especial #Especial será cuando el string lo mande el algoritmo de entrenamiento
+        if not ha_colapsado:
+            self.ColapsarCasillas(pieza.posiciones)
+            if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return pieza #Al final no se movio
+        aux = pieza
+        match peticion:
+            case "R": pieza = Torre(aux.color, aux.posiciones[0])
+            case "K": pieza = Caballo(aux.color, aux.posiciones[0])
+            case "Q": pieza = Dama(aux.color, aux.posiciones[0])
+            case "B": pieza = Alfil(aux.color, aux.posiciones[0])
+        pieza.contadorMovimientos = aux.contadorMovimientos
+        for i in range(32):
+            if self.piezas[i] == aux: self.piezas[i] = pieza #Cambia el objeto
+
     def Split(self, origen, destinos, turno): #Division de una pieza en varios lugares
         raise NotImplementedError
 
     def Slide(self, origen, destino, turno): #Entrelazamiento con otros lugares
+        raise NotImplementedError
+
+    def Merge(self, origen, destino, turno): #Permite juntar dos piezas superpuestas
         raise NotImplementedError
 
     def Move(self, origen, destino, turno): #Movimiento basico
@@ -133,23 +179,28 @@ class Tablero:
         simbolo = self.tablero[yA][xA][5]
         pieza = self._GetPieza(simbolo, turno, yA, xA)
         if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
+        if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): return #No puede dejar al rey en jaque
         #Se analiza si va a comer o no
         if self.tablero[yO][xO] == ".": #En caso no coma se intercambian circuitos entre inicio y fin
+            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(False, origen, destino, pieza)
             pieza.RegistrarMovimiento(tuple(origen), tuple(destino))
             self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
-            self.tablero[yA][xA] = "."
-            self.tablero[yO][xO] = turno+simbolo+BColors.RESET
         else:
             # Si va a comer se llamará a colapso de todas las casillas involucradas con el que va a comer y el comido. Luego si se mantienen posiciones come, sino no.
-            atacado = self._GetPieza(self.tablero[yO][xO], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yO, xO)
+            atacado = self._GetPieza(self.tablero[yO][xO][5], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yO, xO)
             self.ColapsarCasillas(pieza.posiciones+atacado.posiciones) #Colapsará todo lo relacionado a esas casillas
             #Ahora tomará como origen el camino desde donde colapsó la pieza
             origen = pieza.posiciones[0]
             yA, xA = origen
             if not self.MovimientoPermitido(pieza, origen, destino) or pieza.CaminoOcupado(origen, destino, self.tablero): return #No se pudo mover tras el colapso
             pieza.RegistrarMovimiento(tuple(origen), tuple(destino)) #Registra el movimiento
-            if self.tablero[yO][xO] != ".": raise NotImplementedError
-            else: self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
+            if self.tablero[yO][xO] != ".": #Comerá
+                atacado = self.tablero[yO][xO][5]
+                self._DesaparecerPieza(atacado, turno, yO, xO) #Desaparece a la pieza
+            self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
+            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza)
+        self.tablero[yA][xA] = "."
+        self.tablero[yO][xO] = turno + pieza.simbolo + BColors.RESET
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
