@@ -47,7 +47,7 @@ class Rey(Pieza):
         bandera_de_enroque = False
         return False
 
-    def MovimientoValido(self, tablero, origen, objetivo):
+    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
         y, x = objetivo
         if (x == 2 or x == 6) and (y == 0 or y == 7): return self.EvaluarEnroque(objetivo, tablero.tablero, tablero.piezas)
-        else: return super().MovimientoValido(tablero.tablero, origen, objetivo)
+        else: return super().MovimientoValido(tablero.tablero, origen, objetivo, necesita_camino)

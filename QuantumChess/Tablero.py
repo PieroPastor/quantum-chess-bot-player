@@ -1,9 +1,4 @@
-import copy
-
-import cirq
-from attr.validators import instance_of
-from numpy.ma.core import append
-from sympy import false
+from copy import deepcopy
 
 from Piezas import *
 from QubitAdministrator import QubitAdministrator
@@ -11,6 +6,7 @@ from QubitAdministrator import QubitAdministrator
 class Tablero:
     def __init__(self):
         self.tablero = []
+        self.probabilidades = []
         self.circuito = cirq.Circuit()
         self.piezas = []
         self.rey_blanco = None
@@ -20,6 +16,7 @@ class Tablero:
         self.puntaje_negras = 0
         self.InicializarPiezas()
         self.InicializarTableroFisico() #Inicializa el tablero que solo mostrará strings
+        self.InicializarTableroProbabilidades() #Inicializa el tablero que solo tendrá la probabilidad por pieza
         self.InicializarTableroCuantico() #Inicializa el tablero cuántico que es el circuito de Cirq
 
     def InicializarPiezas(self):
@@ -65,6 +62,15 @@ class Tablero:
             f"{BColors.WHITE}B{BColors.RESET}", f"{BColors.WHITE}K{BColors.RESET}", f"{BColors.WHITE}R{BColors.RESET}"
         ]
         self.tablero[6] = [f"{BColors.WHITE}P{BColors.RESET}" for i in range(8)]
+
+    def InicializarTableroProbabilidades(self):
+        for i in range(8):
+            aux = []
+            if i == 0 or i == 1 or i == 6 or i == 7:
+                for j in range(8): aux.append(float(100))
+            else:
+                for j in range(8): aux.append(float(0))
+            self.probabilidades.append(aux)
 
     def InicializarTableroCuantico(self):
         self.circuito.append(cirq.X(QubitAdministrator.qubits[i]) for i in range(0,16)) #Inicializa el circuito en 1 para negras
@@ -153,7 +159,14 @@ class Tablero:
             if peticion not in ["R", "K", "Q", "B"]: print("Pieza no disponible")
         if especial != None: peticion = especial #Especial será cuando el string lo mande el algoritmo de entrenamiento
         if not ha_colapsado:
-            self.ColapsarCasillas(pieza.posiciones)
+            entrelazadas = []
+            piezas = [pieza]
+            for p in piezas:
+                for e in p.entrelazadas:
+                    if self.piezas[e] not in piezas:
+                        piezas.append(self.piezas[e])
+                        entrelazadas += self.piezas[e].historial
+            self.ColapsarCasillas(pieza.historial+entrelazadas)
             if not self.MovimientoPermitido(pieza, pieza.posiciones[0], destino) or not pieza.MovimientoValido(self, pieza.posiciones, destino): return pieza #Al final no se movio
         aux = pieza
         match peticion:
@@ -162,15 +175,51 @@ class Tablero:
             case "Q": pieza = Dama(aux.color, aux.posiciones[0])
             case "B": pieza = Alfil(aux.color, aux.posiciones[0])
         pieza.contadorMovimientos = aux.contadorMovimientos
+        pieza.historial = deepcopy(aux.historial)
         for i in range(32):
             if self.piezas[i] == aux: self.piezas[i] = pieza #Cambia el objeto
         return pieza
 
-    def Split(self, origen, destinos, turno): #Division de una pieza en varios lugares
-        raise NotImplementedError
+    def Split(self, origen, destino1, destino2, turno): #Division de una pieza en varios lugares
+        yA, xA = origen
+        yO1, xO1 = destino1
+        yO2, xO2 = destino2
+        if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return  # Turno será de tipo BColor.WHITE o BColor.BLACK
+        #Analiza si hay posibilidad de comer
+        if (self.tablero[yO1][xO1][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
+                (self.tablero[yO1][xO1][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino1, turno)
+        elif (self.tablero[yO2][xO2][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
+                (self.tablero[yO2][xO2][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino2, turno)
+        simbolo = self.tablero[yA][xA][5]
+        #En caso haya posibilidad de coronación
+        if simbolo == "P" and (yO1 == 0 or yO1 == 7): self.Move(origen, destino1, turno)
+        if simbolo == "P" and (yO2 == 0 or yO2 == 7): self.Move(origen, destino2, turno)
+        pieza = self._GetPieza(simbolo, turno, yA, xA)
+        if not self.MovimientoPermitido(pieza, origen, destino1) or not self.MovimientoPermitido(pieza, origen, destino2): return
+        if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino1) \
+                or self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino2): return  # No puede dejar al rey en jaque
+        hay_slide = False
+        if not pieza.MovimientoValido(self, origen, destino1):
+            se_movio = self.Slide(origen, destino1, turno)  # Manda a analizar si puede hacer un slide
+            if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
+            hay_slide = True
+        if not pieza.MovimientoValido(self, origen, destino2) and not hay_slide:
+            se_movio = self.Slide(origen, destino2, turno)  # Manda a analizar si puede hacer un slide
+            if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
+            hay_slide = True
+        if hay_slide: raise NotImplementedError
+        else:
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO1*8+xO1])**0.5)
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO2*8+xO2]))
+            self.probabilidades[yO1][xO1] = self.probabilidades[yO2][xO2] = self.probabilidades[yA][xA]/2
+            self.probabilidades[yA][xA] = 0
+            self.tablero[yO1][xO1] = self.tablero[yO2][xO2] = self.tablero[yA][xA]
+            self.tablero[yA][xA] = "."
+            pieza.RegistrarMovimiento((yA, xA), (yO1, xO1))
+            pieza.RegistrarMovimiento((yA, xA), (yO2, xO2))
 
     def Slide(self, origen, destino, turno): #Entrelazamiento con otros lugares
-        raise NotImplementedError
+        return False
 
     def Merge(self, origen, destino, turno): #Permite juntar dos piezas superpuestas
         #self.circuito.append(QubitAdministrator.merge_gate.on(#qubits))
@@ -182,8 +231,11 @@ class Tablero:
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return #Turno será de tipo BColor.WHITE o BColor.BLACK
         simbolo = self.tablero[yA][xA][5]
         pieza = self._GetPieza(simbolo, turno, yA, xA)
-        if not self.MovimientoPermitido(pieza, origen, destino) or not pieza.MovimientoValido(self, origen, destino): return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
-        if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): return #No puede dejar al rey en jaque
+        if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): return  # No puede dejar al rey en jaque
+        if not self.MovimientoPermitido(pieza, origen, destino): return
+        if not pieza.MovimientoValido(self, origen, destino):
+            se_movio = self.Slide(origen, destino, turno) #Manda a analizar si puede hacer un slide
+            if not se_movio: return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
         yAtq = yO
         #Se analiza si va a comer o no
         bandera_de_comer_al_paso = False
@@ -195,12 +247,22 @@ class Tablero:
             pieza.RegistrarMovimiento(tuple(origen), tuple(destino))
             #self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
+            self.probabilidades[yO][xO] = self.probabilidades[yA][xA]
+            self.probabilidades[yA][xA] = 0
         else:
             # Si va a comer se llamará a colapso de todas las casillas involucradas con el que va a comer y el comido. Luego si se mantienen posiciones come, sino no.
             if isinstance(pieza, Peon): yAtq = yO-1*bandera_de_comer_al_paso*pieza.avance
             atacado = self._GetPieza(self.tablero[yAtq][xO][5], BColors.BLACK if turno == BColors.WHITE else BColors.WHITE, yAtq, xO)
-            self.ColapsarCasillas(pieza.posiciones+atacado.posiciones) #Colapsará todo lo relacionado a esas casillas
+            entrelazadas = []
+            piezas = [pieza, atacado]
+            for p in piezas:
+                for e in p.entrelazadas:
+                    if self.piezas[e] not in piezas:
+                        piezas.append(self.piezas[e])
+                        entrelazadas += self.piezas[e].historial
+            self.ColapsarCasillas(pieza.historial+atacado.historial+entrelazadas) #Colapsará todo lo relacionado a esas casillas
             #Ahora tomará como origen el camino desde donde colapsó la pieza
+            if self.tablero[yA][xA] == ".": return
             origen = pieza.posiciones[0]
             yA, xA = origen
             if not self.MovimientoPermitido(pieza, origen, destino) or not pieza.MovimientoValido(self, origen, destino): return #No se pudo mover tras el colapso
@@ -210,12 +272,15 @@ class Tablero:
                 self._DesaparecerPieza(atacado, turno, yAtq, xO) #Desaparece a la pieza
             #self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]) #Movimiento normal
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
+            self.probabilidades[yO][xO] = self.probabilidades[yA][xA]
+            self.probabilidades[yA][xA] = 0
             if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza)
         self.tablero[yA][xA] = self.tablero[yAtq][xO] = "."
         self.tablero[yO][xO] = turno + pieza.simbolo + BColors.RESET
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
+        '''
         while True: #Consigue el circuito histórico de todos los qubits
             operations = [op for op in self.circuito.all_operations() if any(q in seleccionados for q in op.qubits)]
             medidor = cirq.Circuit(operations)
@@ -223,6 +288,7 @@ class Tablero:
             if seleccionados2 == seleccionados: break
             seleccionados = seleccionados2
         seleccionados = seleccionados2
+        '''
         operations = [op for op in self.circuito.all_operations() if any(q in seleccionados for q in op.qubits)]
         medidor = cirq.Circuit(operations)
         for qubit in seleccionados:
@@ -242,12 +308,19 @@ class Tablero:
                 color = self.tablero[y][x][0:5] #Consigue el color de la pieza
                 simbolo = self.tablero[y][x][5] #La posición 5 de todos los strings indica el tipo de pieza
                 for pieza in self.piezas:
-                    if [y, x] in pieza.posiciones and pieza.color == color and pieza.simbolo == simbolo: #Es la pieza de ese color pero no peon
+                    if (y, x) in pieza.posiciones and pieza.color == color and pieza.simbolo == simbolo: #Es la pieza de ese color pero no peon
                         for pos in pieza.posiciones:
                             self.tablero[pos[0]][pos[1]] = "." #Limpia en el tablero de strings
+                            self.probabilidades[pos[0]][pos[1]] = 0
                         pieza.posiciones = [(y,x)] #Setea esa posición como la suya ahora.
+                        pieza.historial = [(y,x)]
+                        pieza.entrelazadas = [] #Ya no está entrelazado a nada
+                        self.probabilidades[y][x] = 100
+                        self.tablero[y][x] = pieza.color+pieza.simbolo+BColors.RESET
                         break #Ya no necesita recorrer más piezas
-            else: self.tablero[y][x] = "." #Está vacío
+            else:
+                self.tablero[y][x] = "." #Está vacío
+                self.probabilidades[y][x] = 0
 
 
     @staticmethod
@@ -316,5 +389,12 @@ class Tablero:
         for fila in range(8):
             print(fila + 1, end=" ")  # Números de las filas
             for col in range(8): print(self.tablero[fila][col], end=" ")
+            print()
+        print("  A B C D E F G H")  # Letras de las columnas
+
+    def ImprimirProbabilidades(self):
+        for fila in range(8):
+            print(fila + 1, end=" ")  # Números de las filas
+            for col in range(8): print(self.probabilidades[fila][col], end=" ")
             print()
         print("  A B C D E F G H")  # Letras de las columnas

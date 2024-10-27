@@ -6,13 +6,17 @@ class Pieza:
         self.color = color #Color de la pieza
         self.simbolo = ' ' #Simbolo de la pieza de ajedrez
         self.posiciones = [pos] #Posiciones ocupadas por la pieza
+        self.historial = [pos] #Lugares por donde pasó
         self.movimientos = [] #Movimientos posibles de la pieza
+        self.entrelazadas = [] #Guardará el índice de las piezas con las que se entrelazó
         self.estaVivo = True #Indica si la pieza sigue viva
         self.contadorMovimientos = 0 #Veces en la que la pieza se movio
         self.valorPieza = 0 #Valor de la pieza en el juego
 
     def RegistrarMovimiento(self, origen, objetivo):
-        self.posiciones[self.posiciones.index(origen)] = objetivo
+        if origen in self.posiciones: self.posiciones[self.posiciones.index(origen)] = objetivo
+        else: self.posiciones.append(objetivo)
+        if objetivo not in self.historial: self.historial.append(objetivo)
         self.contadorMovimientos += 1
 
     def CargaMovimiento(self):
@@ -49,13 +53,13 @@ class Pieza:
                 if tablero[yA + ((yO < yA) * -1)*2*i+i][xA + ((xO < xA) * -1)*2*i+i] != '.': return True
         return False
 
-    def MovimientoValido(self, tablero, origen, objetivo):
+    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
         tablero = tablero.tablero
         fila, columna = objetivo
         yA, xA = origen
         if 0 <= fila < 8 and 0 <= columna < 8:  # Verifica si está dentro de los límites del tablero
             destino = tablero[fila][columna]  # Para saber si el destino está vacío
-            if self.CaminoOcupado((yA, xA), objetivo, tablero): return False
+            if self.CaminoOcupado((yA, xA), objetivo, tablero) and necesita_camino: return False
             if destino == '.': return True
             if self.color == BColors.WHITE: return BColors.BLACK in destino
             if self.color == BColors.BLACK: return BColors.WHITE in destino
