@@ -54,7 +54,8 @@ class Pieza:
         return False
 
     def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
-        tablero = tablero.tablero
+        try: tablero = tablero.tablero
+        except: tablero = tablero
         fila, columna = objetivo
         yA, xA = origen
         if 0 <= fila < 8 and 0 <= columna < 8:  # Verifica si está dentro de los límites del tablero

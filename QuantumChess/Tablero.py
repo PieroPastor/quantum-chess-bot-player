@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import cirq
+
 from Piezas import *
 from QubitAdministrator import QubitAdministrator
 
@@ -86,6 +88,15 @@ class Tablero:
         delta_col = col_destino - col_origen
         return (delta_fila, delta_col) in pieza.movimientos
 
+    @staticmethod
+    def MismaFilaMovimientos(origen, destino1, destino2):
+        fila_origen, col_origen = origen
+        fila_destino1, col_destino1 = destino1
+        fila_destino2, col_destino2 = destino2
+        delta_fila = (fila_destino1 - fila_origen) - (fila_destino2-fila_origen)
+        delta_col = (col_destino1 - col_origen) - (col_destino2-col_origen)
+        return delta_fila == 0 and delta_col == 0
+
     def Jaque(self, rey):
         # Verificamos si alguna pieza enemiga puede atacar la posición del rey
         for pos in rey.posiciones: #Recorre las posiciones del rey
@@ -136,11 +147,18 @@ class Tablero:
         copia = copy.deepcopy(self.tablero)
         copia[origen[0]][origen[1]] = "."
         copia[destino[0]][destino[1]] = p.color+p.simbolo+BColors.RESET #Copia para simular el movimiento superficialmente
+        es_rey = False
+        if p.simbolo == "E":
+            es_rey = True
+            rey.posiciones.append(tuple(destino))
         for pos in rey.posiciones: #Recorre las posiciones del rey
             for pieza in self.piezas: #Recorre las piezas
                 if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
-                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos): return True #Si esa pieza puede moverse hay jaque
+                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos):
+                            if es_rey: rey.posiciones.remove(tuple(destino))
+                            return True #Si esa pieza puede moverse hay jaque
+        if es_rey: rey.posiciones.remove(tuple(destino))
         return False
 
     def _DesaparecerPieza(self, simbolo, turno, y, x):
@@ -184,6 +202,7 @@ class Tablero:
         yA, xA = origen
         yO1, xO1 = destino1
         yO2, xO2 = destino2
+        if yA < 0 or yA >= 8 or xA < 0 or xA >= 8: return
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return  # Turno será de tipo BColor.WHITE o BColor.BLACK
         #Analiza si hay posibilidad de comer
         if (self.tablero[yO1][xO1][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
@@ -198,17 +217,40 @@ class Tablero:
         if not self.MovimientoPermitido(pieza, origen, destino1) or not self.MovimientoPermitido(pieza, origen, destino2): return
         if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino1) \
                 or self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino2): return  # No puede dejar al rey en jaque
-        hay_slide = False
+        hay_slide1 = False
+        hay_slide2 = False
+        misma_direccion = self.MismaFilaMovimientos(origen, destino1, destino2) #Indica que no hay relacion entre los splits
         if not pieza.MovimientoValido(self, origen, destino1):
             se_movio = self.Slide(origen, destino1, turno)  # Manda a analizar si puede hacer un slide
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
-            hay_slide = True
-        if not pieza.MovimientoValido(self, origen, destino2) and not hay_slide:
-            se_movio = self.Slide(origen, destino2, turno)  # Manda a analizar si puede hacer un slide
+            hay_slide1 = True
+        if not pieza.MovimientoValido(self, origen, destino2):
+            se_movio = True
+            if not hay_slide1:
+                se_movio = self.Slide(origen, destino2, turno) #Si no hubo slide antes, este será el primero
+                hay_slide2 = True
+            elif misma_direccion:
+                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yO1*8+xO1], QubitAdministrator.qubits[yO2*8+xO2])**0.5) #Si ya hubo un slide antes, este es el segundo
+                self.probabilidades[yO2][yO2] = self.probabilidades[xO1][xO1] / 2
+                self.probabilidades[xO1][xO1] /= 2
+                self.tablero[yO2][xO2] = pieza.color+pieza.simbolo+BColors.RESET
+                pieza.RegistrarMovimiento((yO2, xO2), (yO2, xO2))
+                hay_slide2 = True
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
-            hay_slide = True
-        if hay_slide: raise NotImplementedError
-        else:
+
+        if (not hay_slide1 and hay_slide2) or (not hay_slide2 and hay_slide1):
+            if hay_slide1 and not hay_slide2:
+                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO2*8+xO2])**0.5)
+                self.probabilidades[yO2][xO2] = self.probabilidades[yO1][xO1]/2
+                self.probabilidades[yO1][xO1] /= 2
+                pieza.RegistrarMovimiento((yO2, xO2), (yO2, xO2))
+            elif not hay_slide1 and hay_slide2:
+                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO1*8+xO1])**0.5)
+                self.probabilidades[yO1][yO1] = self.probabilidades[xO2][xO2]/2
+                self.probabilidades[xO2][xO2] /= 2
+                pieza.RegistrarMovimiento((yO1, xO1), (yO1, xO1))
+            self.tablero[yO1][xO1] = self.tablero[yO2][xO2] = self.tablero[yA][xA]
+        elif not hay_slide1 and not hay_slide2:
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO1*8+xO1])**0.5)
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO2*8+xO2]))
             self.probabilidades[yO1][xO1] = self.probabilidades[yO2][xO2] = self.probabilidades[yA][xA]/2
@@ -218,7 +260,63 @@ class Tablero:
             pieza.RegistrarMovimiento((yA, xA), (yO1, xO1))
             pieza.RegistrarMovimiento((yA, xA), (yO2, xO2))
 
-    def Slide(self, origen, destino, turno): #Entrelazamiento con otros lugares
+    def Slide(self, origen, objetivo, turno): #Entrelazamiento con otros lugares
+        yO, xO = objetivo
+        yA, xA = origen
+        simbolo = self.tablero[yA][xA][5]
+        pieza = self._GetPieza(simbolo, turno, yA, xA)
+        this_pieza = self.piezas.index(pieza)
+        entrelazados_casillas = []
+        entrelazados_indices = []
+        if 0 <= yO < 8 and 0 <= xO < 8:  # Verifica si está dentro de los límites del tablero
+            destino = self.tablero[yO][xO]
+            if destino != '.':
+                if turno == BColors.WHITE and BColors.BLACK not in destino: return False
+                if turno == BColors.BLACK and BColors.WHITE not in destino: return False
+            if yA - yO == 0:
+                aux = abs(xA - xO)
+                for i in range(1, aux):
+                    if self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
+                        p = self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i][5]
+                        objeto = self._GetPieza(p, turno, yA, xA + ((xO < xA) * -1) * 2 * i + i)
+                        indice = self.piezas.index(objeto)
+                        casilla = yA*8+(xA + ((xO < xA) * -1) * 2 * i + i)
+                        if len(objeto.posiciones) == 1: return False
+                        else:
+                            if indice not in entrelazados_indices: entrelazados_indices.append(indice)
+                            if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
+            elif xA - xO == 0:
+                aux = abs(yA - yO)
+                for i in range(1, aux):
+                    if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA] != '.':
+                        p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA][5]
+                        objeto = self._GetPieza(p, turno, yA + ((yO < yA) * -1) * 2 * i + i, xA)
+                        indice = self.piezas.index(objeto)
+                        casilla = (yA + ((yO < yA) * -1) * 2 * i + i) * 8 + xA
+                        if len(objeto.posiciones) == 1: return False
+                        else:
+                            if indice not in entrelazados_indices: entrelazados_indices.append(indice)
+                            if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
+            else:
+                distancia = int(math.sqrt((yA - yO) ** 2 + (xA - xO) ** 2))
+                for i in range(1, distancia):
+                    if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
+                        p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i][5]
+                        objeto = self._GetPieza(p, turno, yA + ((yO < yA) * -1) * 2 * i + i, xA + ((xO < xA) * -1) * 2 * i + i)
+                        indice = self.piezas.index(objeto)
+                        casilla = (yA + ((yO < yA) * -1) * 2 * i + i) * 8 + (xA + ((xO < xA) * -1) * 2 * i + i)
+                        if len(objeto.posiciones) == 1: return False
+                        else:
+                            if indice not in entrelazados_indices: entrelazados_indices.append(indice)
+                            if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
+            pieza.entrelazadas += entrelazados_indices
+            for i in entrelazados_indices: self.piezas[i].entrelazadas.append(this_pieza)
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0]))
+            self.tablero[yO][xO] = pieza.color+pieza.simbolo+BColors.RESET
+            pieza.RegistrarMovimiento((yO, xO), (yO, xO))
+            self.probabilidades[yO][xO] = self.probabilidades[yA][xA] / 2
+            self.probabilidades[yA][xA] /= 2
+            return True
         return False
 
     def Merge(self, origen, destino, turno): #Permite juntar dos piezas superpuestas
@@ -228,14 +326,16 @@ class Tablero:
     def Move(self, origen, destino, turno): #Movimiento basico
         yA, xA = origen
         yO, xO = destino
+        if yA < 0 or yA >= 8 or xA < 0 or xA >= 8: return
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return #Turno será de tipo BColor.WHITE o BColor.BLACK
         simbolo = self.tablero[yA][xA][5]
         pieza = self._GetPieza(simbolo, turno, yA, xA)
         if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): return  # No puede dejar al rey en jaque
         if not self.MovimientoPermitido(pieza, origen, destino): return
         if not pieza.MovimientoValido(self, origen, destino):
+            if self.tablero[yO][xO] != ".": return
             se_movio = self.Slide(origen, destino, turno) #Manda a analizar si puede hacer un slide
-            if not se_movio: return #No es cuántico y no hay camino, por lo que no hay entrelazamiento
+            return
         yAtq = yO
         #Se analiza si va a comer o no
         bandera_de_comer_al_paso = False

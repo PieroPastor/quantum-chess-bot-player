@@ -22,7 +22,7 @@ class Rey(Pieza):
         self.movimientos.append((0, -2))  # enroque largo
 
     def RegistrarMovimiento(self, origen, objetivo):
-        super().RegistrarMovimiento(objetivo)
+        super().RegistrarMovimiento(origen, objetivo)
         if self.contadorMovimientos == 1:
             self.movimientos.remove((0, 2))
             self.movimientos.remove((0, -2))
@@ -50,4 +50,4 @@ class Rey(Pieza):
     def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
         y, x = objetivo
         if (x == 2 or x == 6) and (y == 0 or y == 7): return self.EvaluarEnroque(objetivo, tablero.tablero, tablero.piezas)
-        else: return super().MovimientoValido(tablero.tablero, origen, objetivo, necesita_camino)
+        else: return super().MovimientoValido(tablero, origen, objetivo, necesita_camino)
