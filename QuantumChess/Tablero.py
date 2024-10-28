@@ -1,7 +1,7 @@
-from .Utils import *
+from Utils import *
 
-from .Piezas import *
-from .QubitAdministrator import QubitAdministrator
+from Piezas import *
+from QubitAdministrator import QubitAdministrator
 
 class Tablero:
     def __init__(self):
