@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PAQUETES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Paquetes para que soporte caracteres especiales
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%
+\usepackage[hidelinks]{hyperref} % links internos
+\usepackage{multicol} % multiples columnas
+\usepackage{xcolor} % colores
+\usepackage{graphicx} % para insertar imagenes
+\usepackage{import} % para insertar imagenes
+%Podemos poner top=2cm,left2cm o usar la palabra centering
+% El showframe es para poder visualizar los margenes del archivo pdf
+%\usepackage[total={18cm,23cm},top=2cm,left=2cm,showframe]{geometry}
+% 
+\usepackage[total={18cm,23cm},top=2cm,left=2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{tcolorbox} % para cuadros de colors personalizados
+% Para manejo de las Citas y trabajar con los archivos bib
+\usepackage{cite}  % Para manejar las citas
+%\usepackage{biblatex}
+% Para el encabecado de las caratulas
+\usepackage{fancyhdr}
+\usepackage{lipsum}% 
+\usepackage{titlesec} % Para personalizar títulos de secciones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuracion de color para las secciones, subsecction y subsubsecction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Aplica el color a las secciones
+\titleformat{\section}{\color{pucpVerde}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{pucpVerde}\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\color{pucpVerde}\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuracion de FANCYHDR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Encabezado
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{1.5cm}
+\fancyhead[L]{\textcolor{pucpVerde}{\textsf{INTELIGENCIA ARTIFICIAL (1INF24)}}} % Texto en la izquierda
+\fancyhead[R]{
+    \raisebox{-0.5\height}{\resizebox{!}{1cm}{\import{./Imagenes/}{pucp_logo.pdf_tex}}} % Ajuste de la altura a 2cm
+} % Logo a la derecha
+
+% Línea debajo del encabezado
+%\renewcommand{\headrulewidth}{0.4pt}
+
+% Personalizar la línea debajo del encabezado
+\renewcommand{\headrulewidth}{1pt}  % Cambia el grosor a 1.5pt
+\renewcommand{\headrule}{\hbox to\headwidth{\color{pucpColor}\leaders\hrule height \headrulewidth\hfill}}  % Cambia el color a azul
