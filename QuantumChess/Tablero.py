@@ -1,9 +1,7 @@
-from copy import deepcopy
+from Utils import *
 
-import cirq
-
-from Piezas import *
-from QubitAdministrator import QubitAdministrator
+from .Piezas import *
+from .QubitAdministrator import QubitAdministrator
 
 class Tablero:
     def __init__(self):
