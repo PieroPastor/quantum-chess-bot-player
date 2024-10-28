@@ -1,4 +1,10 @@
-from Utils import *
+import math
+import sys
+import cirq
+import copy
+import random
+import matplotlib.pyplot as plt
+import numpy as np
 from .BColors import BColors
 
 class Pieza:
