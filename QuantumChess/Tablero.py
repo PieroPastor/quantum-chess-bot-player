@@ -103,7 +103,29 @@ class Tablero:
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
                         if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(self.tablero, atq, pos): return True #Si esa pieza puede moverse hay jaque
         return False
-
+        
+    def JaqueMate(self,rey):
+        if not self.Jaque(rey):
+            return False
+        for mov in rey.movimientos:
+            ym,xm=mov
+            for pos in rey.posiciones:
+                yp,xp=pos
+                if not self._DejaEnJaque(rey.simbolo,rey,pos,(ym+yp,xm+xp)):
+                    return False
+        return True
+    
+    def JaqueAhogado(self,rey):
+        if self.Jaque(rey):
+            return False
+        for mov in rey.movimientos:
+            ym,xm=mov
+            for pos in rey.posiciones:
+                yp,xp=pos
+                if not self._DejaEnJaque(rey.simbolo,rey,pos,(ym+yp,xm+xp)):
+                    return False
+        return True       
+        
     def Clon(self):
         #Retorna un clon de sí mismo
         return copy.deepcopy(self)
