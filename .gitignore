@@ -163,3 +163,18 @@ cython_debug/
 
 # Proofs
 MainPruebas.py
+
+# Latex
+_minted-main/
+*.aux
+*.dvi
+*.log
+*.out
+*.pygmented
+*.snippets
+*.synctex.gz
+*.toc
+*.bbl
+*.bcf
+*.blg
+*.run.xml
