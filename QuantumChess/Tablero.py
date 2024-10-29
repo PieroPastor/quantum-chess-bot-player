@@ -256,6 +256,9 @@ class Tablero:
                 self.tablero[yO2][xO2] = pieza.color+pieza.simbolo+BColors.RESET
                 pieza.RegistrarMovimiento((yO2, xO2), (yO2, xO2))
                 hay_slide2 = True
+            else:
+                se_movio = self.Slide(origen, destino2, turno, 0.5) #Si no hubo slide antes, este será el primero
+                hay_slide2 = True
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
 
         if (not hay_slide1 and hay_slide2) or (not hay_slide2 and hay_slide1):
@@ -280,7 +283,7 @@ class Tablero:
             pieza.RegistrarMovimiento((yA, xA), (yO1, xO1))
             pieza.RegistrarMovimiento((yA, xA), (yO2, xO2))
 
-    def Slide(self, origen, objetivo, turno): #Entrelazamiento con otros lugares
+    def Slide(self, origen, objetivo, turno, potencia=1.0): #Entrelazamiento con otros lugares
         yO, xO = objetivo
         yA, xA = origen
         simbolo = self.tablero[yA][xA][5]
@@ -331,7 +334,10 @@ class Tablero:
                             if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
             pieza.entrelazadas += entrelazados_indices
             for i in entrelazados_indices: self.piezas[i].entrelazadas.append(this_pieza)
-            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0]))
+            if potencia == 1.0: 
+                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0]))
+            elif potencia == 0.5:
+                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0])**potencia)
             self.tablero[yO][xO] = pieza.color+pieza.simbolo+BColors.RESET
             pieza.RegistrarMovimiento((yO, xO), (yO, xO))
             self.probabilidades[yO][xO] = self.probabilidades[yA][xA] / 2
