@@ -1,3 +1,5 @@
+import math
+
 from Utils import *
 
 from Piezas import *
@@ -91,9 +93,22 @@ class Tablero:
         fila_origen, col_origen = origen
         fila_destino1, col_destino1 = destino1
         fila_destino2, col_destino2 = destino2
-        delta_fila = (fila_destino1 - fila_origen) - (fila_destino2-fila_origen)
-        delta_col = (col_destino1 - col_origen) - (col_destino2-col_origen)
-        return delta_fila == 0 and delta_col == 0
+        y1, y2 = (fila_destino1 - fila_origen), (fila_destino2 - fila_origen)
+        x1, x2 = (col_destino1 - col_origen), (col_destino2 - col_origen)
+        if x1 == 0 and x2 == 0:
+            if y1 >= 0 and y2 >= 0: return True
+            if y1 < 0 and y2 < 0: return True
+        if y1 == 0 and y2 == 0:
+            if x1 >= 0 and x2 >= 0: return True
+            if x1 < 0 and x2 < 0: return True
+        if x1 != 0 and x2 != 0:
+            m1, m2 = float(y1 / x1), float(y2 / x2)
+            if m1 == m2:  # Misma pendiente = misma direccion
+                if y1 >= 0 and y2 >= 0 and x1 >= 0 and x2 >= 0: return True
+                if y1 < 0 and y2 < 0 and x1 < 0 and x2 < 0: return True
+                if y1 >= 0 and y2 >= 0 and x1 < 0 and x2 < 0: return True
+                if y1 < 0 and y2 < 0 and x1 >= 0 and x2 >= 0: return True
+        return False
 
     def Jaque(self, rey):
         # Verificamos si alguna pieza enemiga puede atacar la posición del rey
@@ -222,6 +237,13 @@ class Tablero:
         yA, xA = origen
         yO1, xO1 = destino1
         yO2, xO2 = destino2
+        d1, d2 = math.sqrt((yA-yO1)**2+(xA-xO1)**2), math.sqrt((yA-yO2)**2+(xA-xO2)**2)
+        if d2 > d1: #Para así analizar primero la distancia más lejana
+            aux = destino2
+            destino2 = destino1
+            destino1 = aux
+            yO1, xO1 = destino1
+            yO2, xO2 = destino2
         if yA < 0 or yA >= 8 or xA < 0 or xA >= 8: return
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return  # Turno será de tipo BColor.WHITE o BColor.BLACK
         #Analiza si hay posibilidad de comer
@@ -256,7 +278,7 @@ class Tablero:
                 self.tablero[yO2][xO2] = pieza.color+pieza.simbolo+BColors.RESET
                 pieza.RegistrarMovimiento((yO2, xO2), (yO2, xO2))
                 hay_slide2 = True
-            else:
+            elif hay_slide1:
                 se_movio = self.Slide(origen, destino2, turno, 0.5) #Si no hubo slide antes, este será el primero
                 hay_slide2 = True
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
@@ -334,10 +356,7 @@ class Tablero:
                             if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
             pieza.entrelazadas += entrelazados_indices
             for i in entrelazados_indices: self.piezas[i].entrelazadas.append(this_pieza)
-            if potencia == 1.0: 
-                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0]))
-            elif potencia == 0.5:
-                self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0])**potencia)
+            self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0 for _ in entrelazados_casillas])**potencia)
             self.tablero[yO][xO] = pieza.color+pieza.simbolo+BColors.RESET
             pieza.RegistrarMovimiento((yO, xO), (yO, xO))
             self.probabilidades[yO][xO] = self.probabilidades[yA][xA] / 2
