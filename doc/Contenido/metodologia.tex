@@ -1,19 +1,25 @@
+%\subsection{Tablero}
+%Sobre él se juegan las partidas, tiene implementadas tanto las reglas del juego tradicional, como las reglas de la mecánica cuántica para volver de este un juego más interesante. Además ya contiene el tablero y las piezas necesarias para poder desarrollar todas las simulaciones posibles, y además que pueda ser jugado por una persona normal. Los movimientos especiales con mecánica cuántica que se emplearon son los siguientes:
+
 \section{Metodología}
-Con el fin de resolver las necesiades del ajedrez cuántico, se requiere el uso de una red neuronal que pueda ser capaz de interpretar y usar los conceptos del ajedrez cuántico.
 
 Con el fin de poder jugar de manera correcta, coherente y desafiante al ajedrez cuántico; se requiere el uso de una red neuronal que pueda ser capaz de calcular movimientos a partir de un estado inicial. Dicho estado es un tablero común y corriente con las piezas en él. Para poder llegar a este objetivo se ha planteado el siguiente gráfico que representa el pipeline por el cual se conseguirá la data, para posteriormente usarse en el entrenamiento de la red neuronal, y también tener en cuenta el ajuste de hiper parámetros mediante un algoritmo metaheurístico.
 
-Para entender mejor la solución, se ha  planteado el siguiente gráfico que esquematiza  el funcionamiento del sistema.
 \begin{center}
 	\includegraphics[scale=0.5] {Imagenes/Trabajo_RED_NEURONAL.drawio.png}
 \end{center}
 
 A continuación una breve descripción de cada componente del pipeline.
 
-\subsection{Tablero}
-Sobre él se juegan las partidas, tiene implementadas tanto las reglas del juego tradicional, como las reglas de la mecánica cuántica para volver de este un juego más interesante. Además ya contiene el tablero y las piezas necesarias para poder desarrollar todas las simulaciones posibles, y además que pueda ser jugado por una persona normal. Los movimientos especiales con mecánica cuántica que se emplearon son los siguientes:
+\subsection{Quantum chess}
+
+Sobre él se juegan las partidas, tiene implementadas tanto las reglas del juego tradicional, como las reglas de la mecánica cuántica para volver de este un juego más interesante. Además ya contiene el tablero y las piezas necesarias para poder desarrollar todas las simulaciones posibles, y además que pueda ser jugado por una persona normal.
+Los movimientos especiales con mecánica cuántica que se emplearon son los siguientes:
+
 \subsubsection{Movimiento}
-Para poder trabajar el movimiento convencional que implica cambiar la posición de una pieza entera, o una superposición de esta misma, a otra; se utilizó la compuerta iSWAP, que se debe aplicar entre los dos qubits que intercambiarán valores. Esta compuerta lo que hace es intercambiar el valor de un qubit con otro a la hora de colapsar el circuito completo. Y esto sucede por la matriz que representa a la compuerta matemáticamente.
+
+Para poder trabajar el movimiento convencional que implica cambiar la posición de una pieza entera, o una superposición de esta misma, a otra; se utilizó la compuerta iSWAP, que se debe aplicar entre los dos qubits que intercambiarán valores.
+Esta compuerta lo que hace es intercambiar el valor de un qubit con otro a la hora de colapsar el circuito completo. Y esto sucede por la matriz que representa a la compuerta matemáticamente.
 
 \[
 U_{iSwap} = \begin{pmatrix}
@@ -27,7 +33,9 @@ U_{iSwap} = \begin{pmatrix}
 Se utiliza esta porque es más sensible a los patrones de memoria y puede aprender de manera más segura los patrones del circuito y así se evitan swaps inefectivos que dejarían el juego injugable por la aleatoriedad.
 
 \subsubsection{Split} 
-Para poder realizar una superposición entre dos posiciones, se debe de mantener el uso de la compuerta previamente analizada, pero esto sería únicamente para uno de los dos destinos que implican el split. El otro destino debe verse evaluado mediante $\sqrt{iSWAP}$, entre este y el mismo origen. Esta raíz sobre la compuerta, efectúa una superposición que implica que más adelante cuando se realice el colapso, existirán un 0.5 de probabilidades que aparezca en una posición u otra. Cuantos más splits haya, se irán reduciendo las probabilidades de manera lineal al respecto de cada split o slide realizado.
+
+Para poder realizar una superposición entre dos posiciones, se debe de mantener el uso de la compuerta previamente analizada, pero esto sería únicamente para uno de los dos destinos que implican el split. El otro destino debe verse evaluado mediante sqrt(iSWAP), entre este y el mismo origen.
+Esta raíz sobre la compuerta, efectúa una superposición que implica que más adelante cuando se realice el colapso, existirán un 0.5 de probabilidades que aparezca en una posición u otra. Cuantos más splits haya, se irán reduciendo las probabilidades de manera lineal al respecto de cada split o slide realizado.
 
 \[
 U_{\sqrt{i\text{SWAP}}} = \begin{pmatrix}
@@ -39,6 +47,7 @@ U_{\sqrt{i\text{SWAP}}} = \begin{pmatrix}
 \]
 
 \subsubsection{Slide}
+
 El slide implica que se realice un movimiento atravesando a una pieza y pasando sobre ella como si no estuviera. Para poder hacer uso de esta regla, la pieza que será obviada, debe de encontrarse en alguna superposición. Y la compuerta que maneja este proceso, es el Controlled-iSWAP, y se tendrá que aplicar como controlador a la casilla que será atravesada, para sí en caso sea cero se tome en cuenta ese movimiento como válido, mientras que se la pieza controladora se mantuvo ahí al colapsar; el movimiento se invalide por completo.
 
 \[
@@ -53,21 +62,27 @@ U_{\text{slide}} = \begin{pmatrix}
 	0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
 \end{pmatrix}
 \]
+
 \subsubsection{Split-Slide}
-Para poder realizar un split-slide se optó por utilizar una combinación de compuertas. Es decir, se realizará un Controlled-iSWAP entre la posición y su destino con slide. Para luego en caso ya no hay otro slide, se realice un $\sqrt{iSWAP}$ hacia la dirección sin mayor problemas. En caso, sea un slide en la misma dirección, se realice un $\sqrt{iSWAP}$, pero tomando como inicio el qubit donde se realizó inicialmente el Controlled-iSWAP. Y por último caso, en caso se vaya a don direcciones distintas y ambos requieren slide, a la segunda se le realizará un $\sqrt{Controlled-iSWAP}$  desde el mismo qubit de origen.
+
+Para poder realizar un split-slide se optó por utilizar una combinación de compuertas. Es decir, se realizará un Controlled-iSWAP entre la posición y su destino con slide. Para luego en caso ya no hay otro slide, se realice un sqrt(iSWAP) hacia la dirección sin mayor problemas. En caso, sea un slide en la misma dirección, se realice un sqrt(iSWAP), pero tomando como inicio el qubit donde se realizó inicialmente el Controlled-iSWAP. Y por último caso, en caso se vaya a don direcciones distintas y ambos requieren slide, a la segunda se le realizará un sqrt(Controlled-iSWAP) desde el mismo qubit de origen.
+
 \subsubsection{Merge}
+
 Solo es un movimiento que a nivel de lógica permite que se encuentre en esa posición, mas no a nivel matemático, porque luego cuando se realice el colapso, el circuito generado simulará todo y como ese resultado comenzó a moverse junto, no importa de donde llegue, lo que importa es que por un lado, u otro, se mantendrá el camino. Pero la compuerta utilizada será un Controlled-iSWAP para que si un resultado tiene 0, el otro se lo envíe, y si este tiene 0, su contraparte se la envíe.
-\subsection{Montecarlo Tree Search}
+
+\subsection{Monte Carlo Tree Search}
+
 Cumple la función de jugar de manera aceptable el juego. No obstante, se tendrá que limitar tanto su ramificación como su longitud de simulación, debido a la cantidad exorbitante de movimientos posibles a partir de un estado.
 
 %Insertar pseudocodigo de montecarlo
 \input{Contenido/montecarlomethod.tex}
 
-El algoritmo de monte carlo utilizará como función objetivo la menor cantidad de movimientos para poder ganar la partida. No obstante, también se hará uso de una heurística, esto porque aparte de guiar el camino para la solución; como muy probablemente el árbol no pueda llegar a simular hasta tener el coste total, entonces la heurística al ser optimista llevará por caminos según su propiedad. \\
+El algoritmo de monte carlo utilizará como función objetivo la menor cantidad de movimientos para poder ganar la partida. No obstante, también se hará uso de una heurística, esto porque aparte de guiar el camino para la solución; como muy probablemente el árbol no pueda llegar a simular hasta tener el coste total, entonces la heurística al ser optimista llevará por caminos según su propiedad. 
 
-h1(n) = Puntaje del jugador en base al valor de cada pieza.\\
+\(h1(n)\) = Puntaje del jugador en base al valor de cada pieza.\\
 
-c = Coste (Cantidad de jugadas hasta el jaque mate)
+\(c\) = Coste (Cantidad de jugadas hasta el jaque mate)
 
 \begin{enumerate}
 	\item \textbf{Admisibilidad}: La heurística resulta admisible porque relaja el problema. Ya no busca realizar jaque mate que puede resultar complejo, comenzará a buscar la mayor puntuación que implica solo comer las más valiosas posibles
@@ -129,17 +144,23 @@ Para el movimiento no se toma en cuenta el slide, ya que, está implícito dentr
 	\begin{tabular}{|c|c|}
 		\hline
 		\textbf{Pieza} & \textbf{Valor} \\ \hline
-		Reina & 9\\ \hline
-		Torre  & 5 \\\hline
-		Caballo   & 3 \\\hline
+		Reina & 0\\ \hline
+		Torre  & 1 \\\hline
+		Caballo   & 2 \\\hline
 		Alfil   & 3 \\\hline
-		No hay   & 0 \\\hline
+		No hay   & -1 \\\hline
 	\end{tabular}    
 \end{center}
 
+La data no llevará un tratamiento especial, ya que, como es generada por el computador, esta ya está completa y es fiable por el algoritmo que la generó
 
-\subsection{Red Neuronal}
-Encargado de tomar las desiciones en base de los  analisis realizados a nivel del Montecarlo. Es el  responsable de ordenar que es lo que se hace mientras avanza la partida de ajedrez que busca ganar el algoritmo.
+\subsection{Multi Layer Neural Network}
+Encargado de tomar las desiciones en base de los  analisis realizados a nivel del Montecarlo. Es el  responsable de ordenar que es lo que se hace mientras avanza la partida de ajedrez que busca ganar el algoritmo.\newline
+Tras conseguir de las simulaciones con Monte Carlo data de entrenamiento. Esta se procederá a utilizar como input a la red neuronal.\newline
+Para el proceso de entrenamiento se tomará a la data con un 25\% que será para el test, mientras que un 75\% para el train. De esta forma se podrá ver si las jugadas que realizará el modelo tienen lógica con lo que aprendió y si realmente está trabajando bajo la misma lógica de Monte Carlo para llegar a las mismas conclusiones sobre qué movimientos realizar.\newline
+La red neuronal multicapa se encargará de mejorar el proceso de aprendizaje, ya que, pasará por capas de neuronas, para así ajustar a cada parámetro de salida necesario de manera más óptima. De igual manera habrá una capa final que ajustará los resultados a la salida que realmente sirve, ya que, lo que se plantea predecir es discreto dentro de rangos fijos según cada componente.\newline
+La cantidad de capas o la cantidad de neuronas por capas, y todos los hiper parámetros, se inicializará según la bibliografía estudiada, pero se irán ajustando con el uso del Bat Algorithm.\newline
+Finalmente, cuando se compruebe que la red puede predecir movimientos del algoritmo Monte Carlo, entonces se pondrá a prueba en juegos para ver su funcionamiento.
 
 \subsection{Bat Algorithm}
 Si bien debido al dataset generado de manera confiable gracias al Monte Carlo Tree Search, de todas formas, se deben de optimizar los hiper parámetros de las redes neuronales. Para esta optimización se utilizará el bat algorithm.
@@ -150,5 +171,7 @@ Si bien debido al dataset generado de manera confiable gracias al Monte Carlo Tr
 
 Se basa en la ecolocalización de los murciélagos para así poder llegar a la solución más óptima, en este caso sería la cantidad de capas, las neuronas por capa, la cantidad de épocas, entre otras.
 
+\subsection{Despliegue}
 
+El uso de la red neuronal será únicamente sus pesos para poder predecir a partir de un tablero dado, que movimiento realizar. Para esto, se realizará un despliegue dentro de python para que se pueda jugar con un tablero en ASCII; la metodología de juego será por turnos donde empezará el jugador con las blancas, y la red neuronal será las negras.
 
