@@ -4,3 +4,4 @@ tensorflow
 matplotlib
 keras
 scikit-learn
+pandas
