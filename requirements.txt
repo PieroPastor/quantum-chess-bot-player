@@ -2,3 +2,5 @@ cirq==1.4
 numpy
 tensorflow
 matplotlib
+keras
+scikit-learn
