@@ -1,5 +1,3 @@
-import math
-
 from Utils import *
 
 from Piezas import *
