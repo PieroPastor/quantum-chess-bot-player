@@ -8,6 +8,9 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Colab](https://img.shields.io/badge/Run%20on-Colab-yellow)](https://colab.research.google.com/)
 [![PyCharm](https://img.shields.io/badge/Developed%20with-PyCharm-blue)](https://www.jetbrains.com/pycharm/)
+[![Keras](https://img.shields.io/badge/ML%20with-Keras-red)](https://keras.io/)
+[![Tensorflow](https://img.shields.io/badge/ML%20with-Tensorflow-orange)](https://www.tensorflow.org/)
+[![Tensorflow](https://img.shields.io/badge/ML%20with-Scikit-Learn-blue)](https://scikit-learn.org/)
 
 ## Table of Contents
 - [Installation](#installation)
