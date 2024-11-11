@@ -1,4 +1,4 @@
-# Quantum Chess Player
+# Quantum Chess Bot Player
 
 A neural network that learns to play quantum chess using Monte Carlo tree search. Built from scratch with Cirq, simulating the fascinating world of quantum moves.
 
@@ -6,7 +6,8 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 [![Python 3.12.6](https://img.shields.io/badge/Python-3.12.6-blue)](https://www.python.org/downloads/release/python-3126/)
 [![Cirq](https://img.shields.io/badge/Cirq-1.4-orange)](https://quantumai.google/cirq)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Colab](https://img.shields.io/badge/Run%20on-Colab-yellow)](https://colab.research.google.com/)
+[![Colab](https://img.shields.io/badge/Run%20Monte%20Carlo%20on-Colab-yellow)](https://colab.research.google.com/)
+[![Colab](https://img.shields.io/badge/Run%20Neural%20Network%20on-Colab-yellow)](https://colab.research.google.com/)
 [![PyCharm](https://img.shields.io/badge/Developed%20with-PyCharm-blue)](https://www.jetbrains.com/pycharm/)
 [![Keras](https://img.shields.io/badge/ML%20with-Keras-red)](https://keras.io/)
 [![Tensorflow](https://img.shields.io/badge/ML%20with-Tensorflow-orange)](https://www.tensorflow.org/)
