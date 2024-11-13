@@ -457,22 +457,22 @@ class Tablero:
                                 if not pieza.MovimientoValido(self, origen, destino, necesita_camino=False): continue  # Si falla aquí fue error no de bloqueo
                                 se_movio = self.Slide(origen, destino, turno, checker=True)  # Manda a analizar si puede hacer un slide
                                 if se_movio:
-                                    moves.append((1, origen, 0, destino, 0, 0))
+                                    moves.append((1, origen, 0, destino, 0, 0, color))
                                     posibles_prev.append((destino, 0))
                                 continue #Ya sea si se mueve o no, ya no es necesario analizar el resto
                             # No importa si come o no, si llegó hasta aquí es importante de analizar
                             if pieza.simbolo == "P" and (yO == 0 or yO == 7):
                                 for i in range(1,5):
-                                    moves.append((1, origen, 0, destino, 0, i)) #Manda a coronar para cada pieza
+                                    moves.append((1, origen, 0, destino, 0, i, color)) #Manda a coronar para cada pieza
                                     posibles_prev.append((destino, i))
                                 continue
-                            moves.append((1, origen, 0, destino, 0, 0)) #Así coma o no, igual se mueve y es lo que importa
+                            moves.append((1, origen, 0, destino, 0, 0, color)) #Así coma o no, igual se mueve y es lo que importa
                             posibles_prev.append((destino, 0))
                     for mov in posibles_prev: #Recorre todos los destinos posibles para armar combinaciones en split
                         for mov2 in posibles_prev:
                             if mov == mov2: continue
                             coronacion = max(mov[1], mov2[1]) #Cualquiera que tenga coronacion la toma
-                            moves.append((2, origen, 0, mov[0], mov2[0], coronacion)) #Bota split y toma los dos destinos
+                            moves.append((2, origen, 0, mov[0], mov2[0], coronacion, color)) #Bota split y toma los dos destinos
         return moves
 
     def GenericMove(self, move):
