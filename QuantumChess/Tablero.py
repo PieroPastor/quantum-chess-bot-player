@@ -231,7 +231,7 @@ class Tablero:
             if self.piezas[i] == aux: self.piezas[i] = pieza #Cambia el objeto
         return pieza
 
-    def Split(self, origen, destino1, destino2, turno): #Division de una pieza en varios lugares
+    def Split(self, origen, destino1, destino2, turno, coronacion=None): #Division de una pieza en varios lugares
         yA, xA = origen
         yO1, xO1 = destino1
         yO2, xO2 = destino2
@@ -246,13 +246,13 @@ class Tablero:
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return  # Turno será de tipo BColor.WHITE o BColor.BLACK
         #Analiza si hay posibilidad de comer
         if (self.tablero[yO1][xO1][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
-                (self.tablero[yO1][xO1][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino1, turno)
+                (self.tablero[yO1][xO1][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino1, turno, coronacion)
         elif (self.tablero[yO2][xO2][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
-                (self.tablero[yO2][xO2][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino2, turno)
+                (self.tablero[yO2][xO2][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino2, turno, coronacion)
         simbolo = self.tablero[yA][xA][5]
         #En caso haya posibilidad de coronación
-        if simbolo == "P" and (yO1 == 0 or yO1 == 7): self.Move(origen, destino1, turno)
-        if simbolo == "P" and (yO2 == 0 or yO2 == 7): self.Move(origen, destino2, turno)
+        if simbolo == "P" and (yO1 == 0 or yO1 == 7): self.Move(origen, destino1, turno, coronacion)
+        if simbolo == "P" and (yO2 == 0 or yO2 == 7): self.Move(origen, destino2, turno, coronacion)
         pieza = self._GetPieza(simbolo, turno, yA, xA)
         if not self.MovimientoPermitido(pieza, origen, destino1) or not self.MovimientoPermitido(pieza, origen, destino2): return
         if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino1) \
@@ -362,11 +362,11 @@ class Tablero:
             return True
         return False
 
-    def Merge(self, origen, destino, turno): #Permite juntar dos piezas superpuestas
+    def Merge(self, origen1, origen2, destino, turno, coronacion=None): #Permite juntar dos piezas superpuestas
         #self.circuito.append(QubitAdministrator.merge_gate.on(#qubits))
         raise NotImplementedError
 
-    def Move(self, origen, destino, turno): #Movimiento basico
+    def Move(self, origen, destino, turno, coronacion=None): #Movimiento basico
         yA, xA = origen
         yO, xO = destino
         if yA < 0 or yA >= 8 or xA < 0 or xA >= 8: return
@@ -386,7 +386,7 @@ class Tablero:
             bandera_de_comer_al_paso = pieza.bandera_paso
             pieza.bandera_paso = False
         if self.tablero[yO][xO] == "." and not bandera_de_comer_al_paso: #En caso no coma se intercambian circuitos entre inicio y fin
-            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(False, origen, destino, pieza)
+            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(False, origen, destino, pieza, coronacion)
             pieza.RegistrarMovimiento(tuple(origen), tuple(destino))
             #self._IntercambiarCircuitosQubits(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
@@ -417,9 +417,22 @@ class Tablero:
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO])) #Mueve de origen a destino
             self.probabilidades[yO][xO] = self.probabilidades[yA][xA]
             self.probabilidades[yA][xA] = 0
-            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza)
+            if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza, coronacion)
         self.tablero[yA][xA] = self.tablero[yAtq][xO] = "."
         self.tablero[yO][xO] = turno + pieza.simbolo + BColors.RESET
+
+    def GenericMove(self, move):
+        kinda = move[0]
+        from1 = move[1]
+        from2 = move[2]
+        to1 = move[3]
+        to2 = move[4]
+        coronacion = move[5]
+        turn = move[6]
+        match kinda:
+            case 1: self.Move(from1, to1, turn, coronacion)
+            case 2: self.Split(from1, to1, to2, turn, coronacion)
+            case 3: self.Merge(from1, from2, to1, turn, coronacion)
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]
