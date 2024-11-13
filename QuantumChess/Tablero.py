@@ -307,7 +307,8 @@ class Tablero:
             pieza.RegistrarMovimiento((yA, xA), (yO1, xO1))
             pieza.RegistrarMovimiento((yA, xA), (yO2, xO2))
 
-    def Slide(self, origen, objetivo, turno, potencia=1.0): #Entrelazamiento con otros lugares
+    #Checker se encargará de si es true solo de simulación, para saber si se puede mover
+    def Slide(self, origen, objetivo, turno, potencia=1.0, checker=False): #Entrelazamiento con otros lugares
         yO, xO = objetivo
         yA, xA = origen
         simbolo = self.tablero[yA][xA][5]
@@ -356,6 +357,7 @@ class Tablero:
                         else:
                             if indice not in entrelazados_indices: entrelazados_indices.append(indice)
                             if casilla not in entrelazados_casillas: entrelazados_casillas.append(casilla)
+            if checker: return True #Si solo era análisis, entonces retorna True porque llegó hasta aquí
             pieza.entrelazadas += entrelazados_indices
             for i in entrelazados_indices: self.piezas[i].entrelazadas.append(this_pieza)
             self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO*8+xO]).controlled_by(*[QubitAdministrator.qubits[i] for i in entrelazados_casillas], control_values=[0 for _ in entrelazados_casillas])**potencia)
@@ -424,6 +426,29 @@ class Tablero:
             if simbolo == "P" and (yO == 0 or yO == 7): pieza = self._CoronarPeon(True, origen, destino, pieza, coronacion)
         self.tablero[yA][xA] = self.tablero[yAtq][xO] = "."
         self.tablero[yO][xO] = turno + pieza.simbolo + BColors.RESET
+
+    def GetMoves(self, color):
+        if color == 'W': color = '\033[97m'
+        else: color = '\033[30m'
+        moves = []
+        turno = color
+        for pieza in self.piezas:
+            if pieza.color == color:
+                for origen in pieza.posiciones:
+                    for mov in pieza.movimientos:
+                        destino = (origen[0]+mov[0], origen[1]+mov[1])
+                        if 0 <= destino[0] < 8 and 0 <= destino[1] < 8:
+                            yA, xA = origen
+                            yO, xO = destino
+                            if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: continue  # Turno será de tipo BColor.WHITE o BColor.BLACK
+                            if self._DejaEnJaque(pieza,self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): continue
+                            if not pieza.MovimientoValido(self, origen, destino):
+                                if self.tablero[yO][xO] != ".": continue
+                                se_movio = self.Slide(origen, destino, turno, checker=True)  # Manda a analizar si puede hacer un slide
+                                if se_movio:
+                                    moves.append((1, origen, 0, destino, 0, 0))
+                            moves.append((pos, final))
+        return moves
 
     def GenericMove(self, move):
         kinda = move[0]
