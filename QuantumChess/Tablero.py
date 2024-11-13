@@ -181,6 +181,7 @@ class Tablero:
             self.circuito[i] = cirq.Moment(new_moment)
 
     def _DejaEnJaque(self, p, rey, origen, destino):
+        if 0 > destino[0] or destino[0] >= 8: return False
         copia = copy.deepcopy(self.tablero)
         copia[origen[0]][origen[1]] = "."
         copia[destino[0]][destino[1]] = p.color+p.simbolo+BColors.RESET #Copia para simular el movimiento superficialmente
