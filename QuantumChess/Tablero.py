@@ -108,6 +108,10 @@ class Tablero:
                 if y1 < 0 and y2 < 0 and x1 >= 0 and x2 >= 0: return True
         return False
 
+    def GetRey(self, color):
+        if color == 'B': return self.piezas[4]
+        elif color == 'W': return self.piezas[20]
+
     def Jaque(self, rey):
         # Verificamos si alguna pieza enemiga puede atacar la posición del rey
         for pos in rey.posiciones: #Recorre las posiciones del rey
