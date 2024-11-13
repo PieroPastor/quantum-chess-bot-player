@@ -446,7 +446,7 @@ class Tablero:
                                 if self.tablero[yO][xO] != ".": continue
                                 se_movio = self.Slide(origen, destino, turno, checker=True)  # Manda a analizar si puede hacer un slide
                                 if se_movio:
-                                    moves.append((1, origen, 0, destino, 0, 0))
+                                    moves.append((1, origen, 0, destino, 0, 0)) #SE ESTÁ AGREGANDO SI SE REALIZÓ SLIDE, LUEGO SE VE EL SPLIT
                             moves.append((pos, final))
         return moves
 
