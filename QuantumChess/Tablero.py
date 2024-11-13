@@ -128,7 +128,7 @@ class Tablero:
             ym,xm=mov
             for pos in rey.posiciones:
                 yp,xp=pos
-                if not self._DejaEnJaque(rey.simbolo,rey,pos,(ym+yp,xm+xp)):
+                if not self._DejaEnJaque(rey,rey,pos,(ym+yp,xm+xp)):
                     return False
         return True
     
@@ -139,7 +139,7 @@ class Tablero:
             ym,xm=mov
             for pos in rey.posiciones:
                 yp,xp=pos
-                if not self._DejaEnJaque(rey.simbolo,rey,pos,(ym+yp,xm+xp)):
+                if not self._DejaEnJaque(rey,rey,pos,(ym+yp,xm+xp)):
                     return False
         return True       
         
