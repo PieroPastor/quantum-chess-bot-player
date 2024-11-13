@@ -188,14 +188,19 @@ class Tablero:
         if p.simbolo == "E":
             es_rey = True
             rey.posiciones.append(tuple(destino))
+            rey.posiciones.remove(tuple(origen))
         for pos in rey.posiciones: #Recorre las posiciones del rey
             for pieza in self.piezas: #Recorre las piezas
                 if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
                         if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos):
-                            if es_rey: rey.posiciones.remove(tuple(destino))
+                            if es_rey:
+                                rey.posiciones.remove(tuple(destino))
+                                rey.posiciones.append(tuple(origen))
                             return True #Si esa pieza puede moverse hay jaque
-        if es_rey: rey.posiciones.remove(tuple(destino))
+        if es_rey:
+            rey.posiciones.remove(tuple(destino))
+            rey.posiciones.append(tuple(origen))
         return False
 
     def _DesaparecerPieza(self, simbolo, turno, y, x):
@@ -265,10 +270,13 @@ class Tablero:
         hay_slide2 = False
         misma_direccion = self.MismaFilaMovimientos(origen, destino1, destino2) #Indica que no hay relacion entre los splits
         if not pieza.MovimientoValido(self, origen, destino1):
+            if not pieza.MovimientoValido(self, origen, destino1, necesita_camino=False): return  # Si falla aquí fue error no de bloqueo
+            if not pieza.MovimientoValido(self, origen, destino2, necesita_camino=False): return # Para no hacer nada si fallaría aquí
             se_movio = self.Slide(origen, destino1, turno)  # Manda a analizar si puede hacer un slide
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
             hay_slide1 = True
         if not pieza.MovimientoValido(self, origen, destino2):
+            if not pieza.MovimientoValido(self, origen, destino2, necesita_camino=False): return  # Si falla aquí fue error no de bloqueo
             se_movio = True
             if not hay_slide1:
                 se_movio = self.Slide(origen, destino2, turno) #Si no hubo slide antes, este será el primero
@@ -326,7 +334,7 @@ class Tablero:
                 for i in range(1, aux):
                     if self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
                         p = self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i][5]
-                        objeto = self._GetPieza(p, turno, yA, xA + ((xO < xA) * -1) * 2 * i + i)
+                        objeto = self._GetPieza(p, self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i][0:5], yA, xA + ((xO < xA) * -1) * 2 * i + i)
                         indice = self.piezas.index(objeto)
                         casilla = yA*8+(xA + ((xO < xA) * -1) * 2 * i + i)
                         if len(objeto.posiciones) == 1: return False
@@ -338,7 +346,7 @@ class Tablero:
                 for i in range(1, aux):
                     if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA] != '.':
                         p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA][5]
-                        objeto = self._GetPieza(p, turno, yA + ((yO < yA) * -1) * 2 * i + i, xA)
+                        objeto = self._GetPieza(p, self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA][0:5], yA + ((yO < yA) * -1) * 2 * i + i, xA)
                         indice = self.piezas.index(objeto)
                         casilla = (yA + ((yO < yA) * -1) * 2 * i + i) * 8 + xA
                         if len(objeto.posiciones) == 1: return False
@@ -350,7 +358,7 @@ class Tablero:
                 for i in range(1, distancia):
                     if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
                         p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i][5]
-                        objeto = self._GetPieza(p, turno, yA + ((yO < yA) * -1) * 2 * i + i, xA + ((xO < xA) * -1) * 2 * i + i)
+                        objeto = self._GetPieza(p, self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i][0:5], yA + ((yO < yA) * -1) * 2 * i + i, xA + ((xO < xA) * -1) * 2 * i + i)
                         indice = self.piezas.index(objeto)
                         casilla = (yA + ((yO < yA) * -1) * 2 * i + i) * 8 + (xA + ((xO < xA) * -1) * 2 * i + i)
                         if len(objeto.posiciones) == 1: return False
@@ -382,6 +390,7 @@ class Tablero:
         if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): return  # No puede dejar al rey en jaque
         if not self.MovimientoPermitido(pieza, origen, destino): return
         if not pieza.MovimientoValido(self, origen, destino):
+            if not pieza.MovimientoValido(self, origen, destino, necesita_camino=False): return #Si falla aquí fue error no de bloqueo
             if self.tablero[yO][xO] != ".": return
             se_movio = self.Slide(origen, destino, turno) #Manda a analizar si puede hacer un slide
             return
@@ -435,19 +444,35 @@ class Tablero:
         for pieza in self.piezas:
             if pieza.color == color:
                 for origen in pieza.posiciones:
+                    yA, xA = origen
+                    posibles_prev = [] #Guardará todos los movimientos posibles parciales
                     for mov in pieza.movimientos:
                         destino = (origen[0]+mov[0], origen[1]+mov[1])
                         if 0 <= destino[0] < 8 and 0 <= destino[1] < 8:
-                            yA, xA = origen
                             yO, xO = destino
                             if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: continue  # Turno será de tipo BColor.WHITE o BColor.BLACK
                             if self._DejaEnJaque(pieza,self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino): continue
                             if not pieza.MovimientoValido(self, origen, destino):
                                 if self.tablero[yO][xO] != ".": continue
+                                if not pieza.MovimientoValido(self, origen, destino, necesita_camino=False): continue  # Si falla aquí fue error no de bloqueo
                                 se_movio = self.Slide(origen, destino, turno, checker=True)  # Manda a analizar si puede hacer un slide
                                 if se_movio:
-                                    moves.append((1, origen, 0, destino, 0, 0)) #SE ESTÁ AGREGANDO SI SE REALIZÓ SLIDE, LUEGO SE VE EL SPLIT
-                            moves.append((pos, final))
+                                    moves.append((1, origen, 0, destino, 0, 0))
+                                    posibles_prev.append((destino, 0))
+                                continue #Ya sea si se mueve o no, ya no es necesario analizar el resto
+                            # No importa si come o no, si llegó hasta aquí es importante de analizar
+                            if pieza.simbolo == "P" and (yO == 0 or yO == 7):
+                                for i in range(1,5):
+                                    moves.append((1, origen, 0, destino, 0, i)) #Manda a coronar para cada pieza
+                                    posibles_prev.append((destino, i))
+                                continue
+                            moves.append((1, origen, 0, destino, 0, 0)) #Así coma o no, igual se mueve y es lo que importa
+                            posibles_prev.append((destino, 0))
+                    for mov in posibles_prev: #Recorre todos los destinos posibles para armar combinaciones en split
+                        for mov2 in posibles_prev:
+                            if mov == mov2: continue
+                            coronacion = max(mov[1], mov2[1]) #Cualquiera que tenga coronacion la toma
+                            moves.append((2, origen, 0, mov[0], mov2[0], coronacion)) #Bota split y toma los dos destinos
         return moves
 
     def GenericMove(self, move):
@@ -456,12 +481,18 @@ class Tablero:
         from2 = move[2]
         to1 = move[3]
         to2 = move[4]
-        coronacion = move[5]
+        crown = move[5]
         turn = move[6]
+        match crown:
+            case 0: crown = None
+            case 1: crown = "R"
+            case 2: crown = "Q"
+            case 3: crown = "B"
+            case 4: crown = "K"
         match kinda:
-            case 1: self.Move(from1, to1, turn, coronacion)
-            case 2: self.Split(from1, to1, to2, turn, coronacion)
-            case 3: self.Merge(from1, from2, to1, turn, coronacion)
+            case 1: self.Move(from1, to1, turn, crown)
+            case 2: self.Split(from1, to1, to2, turn, crown)
+            case 3: self.Merge(from1, from2, to1, turn, crown)
 
     def ColapsarCasillas(self, casillas):
         seleccionados = [QubitAdministrator.qubits[casilla[0]*8+casilla[1]] for casilla in casillas]

@@ -66,7 +66,7 @@ class Pieza:
         yA, xA = origen
         if 0 <= fila < 8 and 0 <= columna < 8:  # Verifica si está dentro de los límites del tablero
             destino = tablero[fila][columna]  # Para saber si el destino está vacío
-            if self.CaminoOcupado((yA, xA), objetivo, tablero) and necesita_camino: return False
+            if necesita_camino and self.CaminoOcupado((yA, xA), objetivo, tablero): return False
             if destino == '.': return True
             if self.color == BColors.WHITE: return BColors.BLACK in destino
             if self.color == BColors.BLACK: return BColors.WHITE in destino

@@ -55,7 +55,7 @@ class Peon(Pieza):
         #if ultima_Pieza_mov: y, x = ultima_Pieza_mov[2]
         if 0 <= fila < 8 and 0 <= columna < 8:  # Verifica si está dentro de los límites del tablero
             destino = tablero.tablero[fila][columna]
-            if self.CaminoOcupado(origen, objetivo, tablero.tablero) and necesita_camino: return False
+            if necesita_camino and self.CaminoOcupado(origen, objetivo, tablero.tablero): return False
             if abs(xA-columna) == 1 and self.EvaluarPaso(origen, objetivo, tablero): return True
             if abs(xA-columna) == 1 and destino != '.': #Va a comer a otra pieza
                 if self.color == BColors.WHITE: return BColors.BLACK in destino
