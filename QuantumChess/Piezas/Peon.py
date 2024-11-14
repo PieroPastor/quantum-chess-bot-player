@@ -44,6 +44,8 @@ class Peon(Pieza):
         return False
 
     def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
+        try: tablero = tablero.tablero
+        except: tablero = tablero
         fila, columna = objetivo
         yA, xA = origen
         if fila <= yA and self.avance == 1: return
