@@ -519,8 +519,8 @@ class Tablero:
             casilla = qubit.name.replace('q', '')  # Me da la casilla que está relacionada con el número de qubit
             medidor.append(cirq.measure(qubit, key=f"m{casilla}"))
         sim = cirq.Simulator()
-        result = sim.run(medidor, repetitions=64)  # Hará 64 evaluaciones
-        iterador = random.randint(0, 63)  # Elegirá una de las 64
+        result = sim.run(medidor, repetitions=5)  # Hará 5 evaluaciones
+        iterador = random.randint(0, 4)  # Elegirá una de las 5
         for qubit in seleccionados: #Verá todos los qubits involucrados
             casilla = int(qubit.name.replace('q', ''))  # Me da la casilla que está relacionada con el número de qubit
             y, x = int(casilla/8), casilla%8
