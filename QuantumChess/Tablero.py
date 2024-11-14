@@ -512,6 +512,7 @@ class Tablero:
             seleccionados = seleccionados2
         seleccionados = seleccionados2
         '''
+        seleccionados = set(seleccionados) #Si hay repetidos los reduce a solo únicos
         operations = [op for op in self.circuito.all_operations() if any(q in seleccionados for q in op.qubits)]
         medidor = cirq.Circuit(operations)
         for qubit in seleccionados:
@@ -524,7 +525,6 @@ class Tablero:
             casilla = int(qubit.name.replace('q', ''))  # Me da la casilla que está relacionada con el número de qubit
             y, x = int(casilla/8), casilla%8
             self.circuito.append(cirq.reset(qubit)) #Resetea el qubit
-            print(len(seleccionados) == len(set(seleccionados)))
             medicion = getattr(result.data, f"m{casilla}")  # Obtener el valor usando getattr
             resultado = medicion[iterador] #El resultado de la medición número iter del qubit número "casilla"
             if resultado and self.tablero[y][x] != ".": #Sí está ocupada la casilla
