@@ -194,7 +194,7 @@ class Tablero:
             for pieza in self.piezas: #Recorre las piezas
                 if pieza.estaVivo and pieza.color != rey.color: #Si la pieza está viva y es del otro equipo analiza
                     for atq in pieza.posiciones: #Revisa las posiciones de la pieza
-                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos):
+                        if self.MovimientoPermitido(pieza, atq, pos) and pieza.MovimientoValido(copia, atq, pos, self.peon_paso):
                             if es_rey:
                                 rey.posiciones.remove(tuple(destino))
                                 rey.posiciones.append(tuple(origen))

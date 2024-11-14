@@ -61,7 +61,7 @@ class Pieza:
                 if 0 <= auxY < 8 and 0 <= auxX < 8 and tablero[auxY][auxX] != '.': return True
         return False
 
-    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
+    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True, auxPeon=None):
         try: tablero = tablero.tablero
         except: tablero = tablero
         fila, columna = objetivo
@@ -77,6 +77,6 @@ class Pieza:
     def ReiniciarMovimientos(self, pos):
         self.posiciones = [pos]
 
-    def EvaluarPaso(self, origen, objetivo, tablero):
+    def EvaluarPaso(self, origen, objetivo, tablero, peon_paso=None):
         raise NotImplementedError
 

@@ -30,21 +30,23 @@ class Peon(Pieza):
                 yM, xM = mov
                 if yM == 2 or yM == -2: self.movimientos.remove((yM, xM))
 
-    def EvaluarPaso(self, origen, objetivo, tablero):
+    def EvaluarPaso(self, origen, objetivo, tablero, peon_paso=None):
         yA, xA = origen
         yO, xO = objetivo
-        if tablero.tablero[yO][xO] != ".": return False
-        if "P" not in tablero.tablero[yO-1*self.avance][xO]: return False
-        if self.color == BColors.WHITE and yA == yO-1*self.avance == tablero.peon_paso[0] and BColors.BLACK in tablero.tablero[yO-1*self.avance][xO]:
+        if tablero[yO][xO] != ".": return False
+        if "P" not in tablero[yO-1*self.avance][xO]: return False
+        if self.color == BColors.WHITE and yA == yO-1*self.avance == peon_paso[0] and BColors.BLACK in tablero[yO-1*self.avance][xO]:
             self.bandera_paso = True
             return True
-        if self.color == BColors.BLACK and yA == yO-1*self.avance == tablero.peon_paso[1] and BColors.WHITE in tablero.tablero[yO-1*self.avance][xO]:
+        if self.color == BColors.BLACK and yA == yO-1*self.avance == peon_paso[1] and BColors.WHITE in tablero[yO-1*self.avance][xO]:
             self.bandera_paso = True
             return True
         return False
 
-    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True):
-        try: tablero = tablero.tablero
+    def MovimientoValido(self, tablero, origen, objetivo, necesita_camino=True, auxPeon=None):
+        try:
+            auxPeon = tablero.peon_paso
+            tablero = tablero.tablero
         except: tablero = tablero
         fila, columna = objetivo
         yA, xA = origen
@@ -56,9 +58,9 @@ class Peon(Pieza):
         x, y = (-1, -1)
         #if ultima_Pieza_mov: y, x = ultima_Pieza_mov[2]
         if 0 <= fila < 8 and 0 <= columna < 8:  # Verifica si está dentro de los límites del tablero
-            destino = tablero.tablero[fila][columna]
-            if necesita_camino and self.CaminoOcupado(origen, objetivo, tablero.tablero): return False
-            if abs(xA-columna) == 1 and self.EvaluarPaso(origen, objetivo, tablero): return True
+            destino = tablero[fila][columna]
+            if necesita_camino and self.CaminoOcupado(origen, objetivo, tablero): return False
+            if abs(xA-columna) == 1 and self.EvaluarPaso(origen, objetivo, tablero, auxPeon): return True
             if abs(xA-columna) == 1 and destino != '.': #Va a comer a otra pieza
                 if self.color == BColors.WHITE: return BColors.BLACK in destino
                 if self.color == BColors.BLACK: return BColors.WHITE in destino
