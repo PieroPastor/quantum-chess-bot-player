@@ -213,6 +213,18 @@ class Tablero:
                     if turno == BColors.WHITE: self.puntaje_blancas += pieza.valorPieza
                     else: self.puntaje_negras += pieza.valorPieza
 
+    def _MergearHistorialesDePiezasRelacionadas(self, casillas, piezas):
+        for pos in casillas:
+            if self.tablero[pos[0]][pos[1]] != '.':  # Si en alguna casilla hay una pieza que no se toma en cuenta
+                p = self._GetPieza(self.tablero[pos[0]][pos[1]][5], self.tablero[pos[0]][pos[1]][0:5], pos[0], pos[1])  # Se saca la pieza y se agrega su historial
+                if p not in piezas:  # Para no caer en bucle, la pieza no debe de haber sido analizada ya
+                    piezas.append(p)
+                    casillas += p.historial  # Se agrega ahí mismo por si hay otra pieza en su historial también
+                    for e in p.entrelazadas:  # Agrega el entrelazamiento que pueda tener
+                        if self.piezas[e] not in piezas:
+                            piezas.append(self.piezas[e])
+                            casillas += self.piezas[e].historial  # Agrega las casillas entrelazadas también para posible análisis
+
     def _CoronarPeon(self, ha_colapsado, origen, destino, pieza, especial=None):
         peticion = ""
         while peticion.upper() not in ["R", "K", "Q", "B"] and especial == None:
@@ -227,6 +239,8 @@ class Tablero:
                     if self.piezas[e] not in piezas:
                         piezas.append(self.piezas[e])
                         entrelazadas += self.piezas[e].historial
+            casillas = pieza.historial + entrelazadas
+            self._MergearHistorialesDePiezasRelacionadas(casillas, piezas)
             self.ColapsarCasillas(pieza.historial+entrelazadas)
             if not self.MovimientoPermitido(pieza, pieza.posiciones[0], destino) or not pieza.MovimientoValido(self, pieza.posiciones, destino): return pieza #Al final no se movio
         aux = pieza
@@ -337,6 +351,8 @@ class Tablero:
             if yA - yO == 0:
                 aux = abs(xA - xO)
                 for i in range(1, aux):
+                    auxY = yA + ((yO < yA) * -1) * 2 * i + i
+                    if auxY == yO: break #Ya llegó al objetivo
                     if self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
                         p = self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i][5]
                         objeto = self._GetPieza(p, self.tablero[yA][xA + ((xO < xA) * -1) * 2 * i + i][0:5], yA, xA + ((xO < xA) * -1) * 2 * i + i)
@@ -349,6 +365,8 @@ class Tablero:
             elif xA - xO == 0:
                 aux = abs(yA - yO)
                 for i in range(1, aux):
+                    auxX = xA + ((xO < xA) * -1) * 2 * i + i
+                    if auxX == xO: break #Ya llegó al objetivo
                     if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA] != '.':
                         p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA][5]
                         objeto = self._GetPieza(p, self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA][0:5], yA + ((yO < yA) * -1) * 2 * i + i, xA)
@@ -363,6 +381,7 @@ class Tablero:
                 for i in range(1, distancia):
                     auxY = yA + ((yO < yA) * -1) * 2 * i + i
                     auxX = xA + ((xO < xA) * -1) * 2 * i + i
+                    if auxX == xO and auxY == yO: break #Ya llegó al objetivo
                     if 0 <= auxY < 8 and 0 <= auxX < 8 and self.tablero[auxY][auxX] != '.':
                         p = self.tablero[auxY][auxX][5]
                         objeto = self._GetPieza(p, self.tablero[auxY][auxX][0:5], auxY, auxX)
@@ -425,7 +444,9 @@ class Tablero:
                     if self.piezas[e] not in piezas:
                         piezas.append(self.piezas[e])
                         entrelazadas += self.piezas[e].historial
-            self.ColapsarCasillas(pieza.historial+atacado.historial+entrelazadas) #Colapsará todo lo relacionado a esas casillas
+            casillas = pieza.historial+atacado.historial+entrelazadas
+            self._MergearHistorialesDePiezasRelacionadas(casillas, piezas)
+            self.ColapsarCasillas(casillas) #Colapsará todo lo relacionado a esas casillas
             #Ahora tomará como origen el camino desde donde colapsó la pieza
             if self.tablero[yA][xA] == ".": return
             origen = pieza.posiciones[0]

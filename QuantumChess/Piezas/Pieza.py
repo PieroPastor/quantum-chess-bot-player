@@ -48,16 +48,21 @@ class Pieza:
         if yA-yO == 0:
             aux = abs(xA - xO)
             for i in range(1, aux):
-                if tablero[yA][xA+((xO < xA)*-1)*2*i+i] != '.': return True
+                auxX = xA + ((xO < xA) * -1) * 2 * i + i
+                if auxX == xO: return False
+                if tablero[yA][auxX] != '.': return True
         elif xA-xO == 0:
             aux = abs(yA - yO)
             for i in range(1, aux):
-                if tablero[yA+((yO < yA)*-1)*2*i+i][xA] != '.': return True
+                auxY = yA + ((yO < yA) * -1) * 2 * i + i
+                if auxY == yO: return False
+                if tablero[auxY][xA] != '.': return True
         else:
             distancia = int(math.sqrt((yA - yO) ** 2 + (xA - xO) ** 2))
             for i in range(1, distancia):
                 auxY = yA + ((yO < yA) * -1) * 2 * i + i
                 auxX = xA + ((xO < xA) * -1) * 2 * i + i
+                if auxX == xO and auxY == yO: return False
                 if 0 <= auxY < 8 and 0 <= auxX < 8 and tablero[auxY][auxX] != '.': return True
         return False
 
