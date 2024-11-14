@@ -55,7 +55,7 @@ class Pieza:
                 if tablero[yA+((yO < yA)*-1)*2*i+i][xA] != '.': return True
         else:
             distancia = int(math.sqrt((yA - yO) ** 2 + (xA - xO) ** 2))
-            for i in range(1, distancia-1):
+            for i in range(1, distancia):
                 auxY = yA + ((yO < yA) * -1) * 2 * i + i
                 auxX = xA + ((xO < xA) * -1) * 2 * i + i
                 if 0 <= auxY < 8 and 0 <= auxX < 8 and tablero[auxY][auxX] != '.': return True
