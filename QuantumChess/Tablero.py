@@ -259,6 +259,7 @@ class Tablero:
                 (self.tablero[yO1][xO1][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino1, turno, coronacion)
         elif (self.tablero[yO2][xO2][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
                 (self.tablero[yO2][xO2][0:5] == BColors.WHITE and turno == BColors.BLACK): self.Move(origen, destino2, turno, coronacion)
+        self.tablero[yA][xA][5]
         simbolo = self.tablero[yA][xA][5]
         #En caso haya posibilidad de coronación
         if simbolo == "P" and (yO1 == 0 or yO1 == 7): self.Move(origen, destino1, turno, coronacion)
