@@ -357,11 +357,13 @@ class Tablero:
             else:
                 distancia = int(math.sqrt((yA - yO) ** 2 + (xA - xO) ** 2))
                 for i in range(1, distancia):
-                    if self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i] != '.':
-                        p = self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i][5]
-                        objeto = self._GetPieza(p, self.tablero[yA + ((yO < yA) * -1) * 2 * i + i][xA + ((xO < xA) * -1) * 2 * i + i][0:5], yA + ((yO < yA) * -1) * 2 * i + i, xA + ((xO < xA) * -1) * 2 * i + i)
+                    auxY = yA + ((yO < yA) * -1) * 2 * i + i
+                    auxX = xA + ((xO < xA) * -1) * 2 * i + i
+                    if 0 <= auxY < 8 and 0 <= auxX < 8 and self.tablero[auxY][auxX] != '.':
+                        p = self.tablero[auxY][auxX][5]
+                        objeto = self._GetPieza(p, self.tablero[auxY][auxX][0:5], auxY, auxX)
                         indice = self.piezas.index(objeto)
-                        casilla = (yA + ((yO < yA) * -1) * 2 * i + i) * 8 + (xA + ((xO < xA) * -1) * 2 * i + i)
+                        casilla = auxY * 8 + auxX
                         if len(objeto.posiciones) == 1: return False
                         else:
                             if indice not in entrelazados_indices: entrelazados_indices.append(indice)

@@ -1,4 +1,15 @@
 from Tablero import *
+a = Tablero()
+a.ImprimirTablero()
+a.GenericMove((1, (7, 1), 0, (5, 2), 0, 0, '\x1b[97m'))
+a.ImprimirTablero()
+a.GenericMove((1, (0, 1), 0, (2, 2), 0, 0, '\x1b[30m'))
+a.ImprimirTablero()
+a.GenericMove((2, (6, 4), 0, (5, 4), (4, 4), 0, '\x1b[97m'))
+a.ImprimirTablero()
+a.GenericMove((2, (2, 2), 0, (3, 4), (4, 1), 0, '\x1b[30m'))
+a.ImprimirTablero()
+a.GetMoves('W')
 
 a = Tablero()
 a.ImprimirTablero()
