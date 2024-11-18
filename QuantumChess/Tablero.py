@@ -130,6 +130,13 @@ class Tablero:
                 yp,xp=pos
                 if not self._DejaEnJaque(rey,rey,pos,(ym+yp,xm+xp)):
                     return False
+        for pieza in self.piezas:
+            for pos in pieza.posiciones:
+                yp,xp=pos
+                for mov in pieza.movimientos:
+                    ym,xm=mov
+                    if not self._DejaEnJaque(pieza,rey,pos,(ym+yp,xm+xp)):
+                        return False
         return True
     
     def JaqueAhogado(self,rey):
@@ -141,7 +148,14 @@ class Tablero:
                 yp,xp=pos
                 if not self._DejaEnJaque(rey,rey,pos,(ym+yp,xm+xp)):
                     return False
-        return True       
+        for pieza in self.piezas:
+            for pos in pieza.posiciones:
+                yp,xp=pos
+                for mov in pieza.movimientos:
+                    ym,xm=mov
+                    if not self._DejaEnJaque(pieza,rey,pos,(ym+yp,xm+xp)):
+                        return False
+        return True
         
     def Clon(self):
         #Retorna un clon de sí mismo
