@@ -11,9 +11,9 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 [![PyCharm](https://img.shields.io/badge/Developed%20with-PyCharm-blue)](https://www.jetbrains.com/pycharm/)
 [![Keras](https://img.shields.io/badge/ML%20with-Keras-red)](https://keras.io/)
 [![Tensorflow](https://img.shields.io/badge/ML%20with-Tensorflow-orange)](https://www.tensorflow.org/)
-[![Tensorflow](https://img.shields.io/badge/ML%20with-ScikitLearn-skyblue)](https://scikit-learn.org/)
-[![Tensorflow](https://img.shields.io/badge/Data%20Processing%20with-Pandas-green)](https://pandas.pydata.org/)
-[![Tensorflow](https://img.shields.io/badge/Data%20Processing%20with-Pandas-green)](https://pandas.pydata.org/)
+[![SkLearn](https://img.shields.io/badge/ML%20with-ScikitLearn-skyblue)](https://scikit-learn.org/)
+[![Pandas](https://img.shields.io/badge/Data%20Processing%20with-Pandas-green)](https://pandas.pydata.org/)
+[![Pygame](https://img.shields.io/badge/Deployed%20with-Pygame-purple)](https://www.pygame.org/)
 
 ## Table of Contents
 - [Installation](#installation)
