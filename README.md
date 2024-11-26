@@ -13,6 +13,7 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 [![Tensorflow](https://img.shields.io/badge/ML%20with-Tensorflow-orange)](https://www.tensorflow.org/)
 [![Tensorflow](https://img.shields.io/badge/ML%20with-ScikitLearn-skyblue)](https://scikit-learn.org/)
 [![Tensorflow](https://img.shields.io/badge/Data%20Processing%20with-Pandas-green)](https://pandas.pydata.org/)
+[![Tensorflow](https://img.shields.io/badge/Data%20Processing%20with-Pandas-green)](https://pandas.pydata.org/)
 
 ## Table of Contents
 - [Installation](#installation)
