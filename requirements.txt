@@ -1,7 +1,8 @@
 cirq==1.4
 numpy
-tensorflow
+tensorflow==2.17.1
 matplotlib
 keras
 scikit-learn
 pandas
+pygame==2.6.0
