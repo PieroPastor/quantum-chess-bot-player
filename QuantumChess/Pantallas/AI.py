@@ -1,4 +1,4 @@
-from Plays import *
+from .Plays import *
 from Utils import *
 
 # Función para aplicar escalamiento de temperatura
@@ -31,6 +31,9 @@ def main_ai(board, color):
         # Dibujar el tablero
         draw_board(board.tablero)
 
+        # Dibujar el botón de retroceso
+        back_button_rect = draw_back_button()
+
         # Dibujar las cajas de texto
         draw_text_boxes(input_boxes, active_index)
 
@@ -45,3 +48,5 @@ def main_ai(board, color):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if back_button_rect.collidepoint(event.pos):
+                return

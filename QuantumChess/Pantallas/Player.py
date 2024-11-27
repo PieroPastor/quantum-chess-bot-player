@@ -18,6 +18,9 @@ def main_player(board):
     while True:
         screen.fill(GRAY)  # Fondo gris claro
 
+        # Dibujar el botón de retroceso
+        back_button_rect = draw_back_button()
+
         # Dibujar el tablero
         draw_board(board.tablero)
 
@@ -56,7 +59,9 @@ def main_player(board):
                             error_message = ""  # Borrar mensaje de error
                         else: error_message = "Movimiento inválido."
                     else:
-                        error_message = "Por favor, complete todos los campos."
+                        error_message = "Por favor, complete todos los campos correctamente."
+                if back_button_rect.collidepoint(event.pos):
+                    return
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:  # Detectar Enter

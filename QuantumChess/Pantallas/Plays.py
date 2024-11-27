@@ -36,6 +36,8 @@ def draw_button(button_rect, text, color=WHITE, text_col=BLACK):
     screen.blit(text_surface, text_rect)
 
 def validate_input_boxes(input_boxes):
+    for i in range(1, 5):
+        if len(input_boxes[i][1]) != max_lengths[i]: return False
     for _, text in input_boxes:
         if not text.strip():  # Verifica si el campo está vacío o solo tiene espacios
             return False
@@ -69,3 +71,11 @@ def draw_title(title_text, color=BLACK):
     title_surface = titles.render(title_text, True, color)
     title_rect = title_surface.get_rect(center=(WIDTH // 2, 100))  # Centrado en la parte superior
     screen.blit(title_surface, title_rect)
+
+def draw_back_button():
+    back_button_rect = pygame.Rect(10, 10, 100, 30)  # Ubicación y tamaño del botón de retroceso
+    pygame.draw.rect(screen, WHITE, back_button_rect)
+    back_text = font.render("Back", True, BLACK)
+    text_rect = back_text.get_rect(center=back_button_rect.center)
+    screen.blit(back_text, text_rect)
+    return back_button_rect
