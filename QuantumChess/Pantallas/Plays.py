@@ -50,21 +50,24 @@ def draw_error_message(message):
     screen.blit(error_surface, error_rect)
 
 def serialize(input_boxes, turn):
-    m = (ord(input_boxes[1][1][0].upper()) - 65) * 8 + int(input_boxes[1][1][1])-1
-    move = [int(input_boxes[0][1]), (int(m/8), m%8)]  # Tipo de movimiento
-    if input_boxes[2][1] != "-1":
-        m = (ord(input_boxes[2][1][0].upper()) - 65) * 8 + int(input_boxes[2][1][1])-1  # Casilla 2
-        move.append((int(m/8), m%8))  # Casilla 2
-    else: move.append(0)
-    m = (ord(input_boxes[3][1][0].upper()) - 65) * 8 + int(input_boxes[3][1][1])-1
-    move.append((int(m/8), m%8))  # Casilla 3
-    if input_boxes[4][1] != "-1":
-        m = (ord(input_boxes[4][1][0].upper()) - 65) * 8 + int(input_boxes[4][1][1]) - 1  # Casilla 4
-        move.append((int(m/8), m%8))  # Casilla 4
-    else: move.append(0)
-    move.append(int(input_boxes[5][1]))  # Coronación
-    move.append(BColors.WHITE if turn == "W" else BColors.BLACK)
-    print(tuple(move))
+    try:
+        m = (ord(input_boxes[1][1][0].upper()) - 65) * 8 + int(input_boxes[1][1][1])-1
+        move = [int(input_boxes[0][1]), (int(m/8), m%8)]  # Tipo de movimiento
+        if input_boxes[2][1] != "-1":
+            m = (ord(input_boxes[2][1][0].upper()) - 65) * 8 + int(input_boxes[2][1][1])-1  # Casilla 2
+            move.append((int(m/8), m%8))  # Casilla 2
+        else: move.append(0)
+        m = (ord(input_boxes[3][1][0].upper()) - 65) * 8 + int(input_boxes[3][1][1])-1
+        move.append((int(m/8), m%8))  # Casilla 3
+        if input_boxes[4][1] != "-1":
+            m = (ord(input_boxes[4][1][0].upper()) - 65) * 8 + int(input_boxes[4][1][1]) - 1  # Casilla 4
+            move.append((int(m/8), m%8))  # Casilla 4
+        else: move.append(0)
+        move.append(int(input_boxes[5][1]))  # Coronación
+        move.append(BColors.WHITE if turn == "W" else BColors.BLACK)
+        print(tuple(move))
+    except Exception:
+        return 0, 0, 0, 0, 0, turn
     return tuple(move)
 
 def draw_title(title_text, color=BLACK):

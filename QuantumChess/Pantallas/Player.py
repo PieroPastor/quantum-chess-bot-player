@@ -16,6 +16,9 @@ def main_player(board):
     turn = "W"
     moves = board.GetMoves(turn)
     while True:
+        if len(moves) == 0:
+            print("Jaque mate")
+
         screen.fill(GRAY)  # Fondo gris claro
 
         # Dibujar el botón de retroceso
@@ -44,6 +47,7 @@ def main_player(board):
                 for i, (rect, _) in enumerate(input_boxes):
                     if rect.collidepoint(event.pos):
                         active_index = i
+                        input_boxes[active_index] = (rect, "")  # Limpiar caja de texto
                         break
                 else:
                     active_index = -1

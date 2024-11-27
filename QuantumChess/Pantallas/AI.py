@@ -7,11 +7,24 @@ def apply_temperature_scaling(logits, temperature):
     probabilities = exp_scaled / np.sum(exp_scaled, axis=1, keepdims=True)
     return probabilities
 
+def predict_move(model, board, turn, T):
+    x = [turn] + board
+    predictions = model.predict(x)
+    adjusted_predictions = {
+        'o_mov': apply_temperature_scaling(predictions['o_mov'], T),
+        'o_beg1': apply_temperature_scaling(predictions['o_beg1'], T),
+        'o_beg2': apply_temperature_scaling(predictions['o_beg2'], T),
+        'o_end1': apply_temperature_scaling(predictions['o_end1'], T),
+        'o_end2': apply_temperature_scaling(predictions['o_end2'], T),
+        'o_pown': apply_temperature_scaling(predictions['o_pown'], T),
+    }
+    raise NotImplementedError
+
 def main_ai(board, color):
     clock = pygame.time.Clock()
     # Temperatura para el ajuste
     T = 2.0  #Se variará dependiendo de los resultados obtenidos
-    model = tf.keras.models.load_model('Weights/weights.h5')
+    #model = tf.keras.models.load_model('Weights/weights.h5')
     input_boxes = [
         (pygame.Rect(50, 550, 100, 30), ""),  # Tipo de movimiento
         (pygame.Rect(160, 550, 50, 30), ""),  # Casilla 1
@@ -24,6 +37,8 @@ def main_ai(board, color):
     button_rect = pygame.Rect(235, 600, 100, 30)  # Botón de enviar
     error_message = ""
     turn = "W"
+    ai = "B" if color == 1 else "W"
+    player = "W" if color == 1 else "B"
     moves = board.GetMoves(turn)
     while True:
         screen.fill(GRAY)  # Fondo gris claro
@@ -44,9 +59,39 @@ def main_ai(board, color):
         if error_message:
             draw_error_message(error_message)
 
+        #if player == turn:
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if back_button_rect.collidepoint(event.pos):
-                return
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button_rect.collidepoint(event.pos):
+                    return
+                # Verificar si se seleccionó una caja de texto
+                for i, (rect, _) in enumerate(input_boxes):
+                    if rect.collidepoint(event.pos):
+                        active_index = i
+                        input_boxes[active_index] = (rect, "")  # Limpiar caja de texto
+                        break
+                else:
+                    active_index = -1
+
+                # Verificar si se presionó el botón
+                if button_rect.collidepoint(event.pos):
+                    if validate_input_boxes(input_boxes):
+                        neo_move = serialize(input_boxes, turn)
+                        if neo_move in moves:
+                            board.GenericMove(neo_move)
+                            turn = "B" if turn == "W" else "W"
+                            moves = board.GetMoves(turn)
+                            error_message = ""  # Borrar mensaje de error
+                        else: error_message = "Movimiento inválido."
+                    else:
+                        error_message = "Por favor, complete todos los campos correctamente."
+                if back_button_rect.collidepoint(event.pos):
+                    return
+
+        pygame.display.flip()
+        clock.tick(60)
