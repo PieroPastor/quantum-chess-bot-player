@@ -249,10 +249,11 @@ class Tablero:
             entrelazadas = []
             piezas = [pieza]
             for p in piezas:
-                for e in p.entrelazadas:
-                    if self.piezas[e] not in piezas:
-                        piezas.append(self.piezas[e])
-                        entrelazadas += self.piezas[e].historial
+                if p is not None:
+                    for e in p.entrelazadas:
+                        if self.piezas[e] not in piezas:
+                            piezas.append(self.piezas[e])
+                            entrelazadas += self.piezas[e].historial
             casillas = pieza.historial + entrelazadas
             self._MergearHistorialesDePiezasRelacionadas(casillas, piezas)
             self.ColapsarCasillas(pieza.historial+entrelazadas)
@@ -454,10 +455,11 @@ class Tablero:
             entrelazadas = []
             piezas = [pieza, atacado]
             for p in piezas:
-                for e in p.entrelazadas:
-                    if self.piezas[e] not in piezas:
-                        piezas.append(self.piezas[e])
-                        entrelazadas += self.piezas[e].historial
+                if p is not None:
+                    for e in p.entrelazadas:
+                        if self.piezas[e] not in piezas:
+                            piezas.append(self.piezas[e])
+                            entrelazadas += self.piezas[e].historial
             casillas = pieza.historial+atacado.historial+entrelazadas
             self._MergearHistorialesDePiezasRelacionadas(casillas, piezas)
             self.ColapsarCasillas(casillas) #Colapsará todo lo relacionado a esas casillas
