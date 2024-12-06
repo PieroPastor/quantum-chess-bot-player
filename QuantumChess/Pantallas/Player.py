@@ -17,6 +17,7 @@ def main_player(board):
     moves = board.GetMoves(turn)
     while True:
         if len(moves) == 0:
+            show_alert("Jaque mate")
             print("Jaque mate")
 
         screen.fill(GRAY)  # Fondo gris claro

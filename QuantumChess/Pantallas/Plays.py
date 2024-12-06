@@ -82,3 +82,10 @@ def draw_back_button():
     text_rect = back_text.get_rect(center=back_button_rect.center)
     screen.blit(back_text, text_rect)
     return back_button_rect
+
+def show_alert(message):
+    """Función para mostrar el mensaje de alerta en la pantalla."""
+    screen.fill(WHITE)
+    text = font.render(message, True, RED)
+    screen.blit(text, (50, 120))
+    pygame.display.update()
