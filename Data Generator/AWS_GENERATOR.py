@@ -179,6 +179,12 @@ import random
 
 #N es la cantidad de simulaciones
 def monte_carlo_tree_search(state, game, N=20, m=20):
+  def simul_thread(state, action):
+    try:
+      state = game.result(state, action)
+    except Exception:
+      return
+      
   def select(n):
     """Selecciona un nodo del árbol."""
     if n.children: return select(max(n.children.keys(), key=ucb)) #Retorna el mejor nodo
@@ -197,7 +203,11 @@ def monte_carlo_tree_search(state, game, N=20, m=20):
     i = 0 #Contador de iteraciones (para medir profundidad)
     while not game.terminal_test(state) and i < m: #Mientras que no se acabe
       action = random.choice(list(game.actions(state))) #Elige una accion aleatoria
-      state = game.result(state, action)
+      hilo = threading.Thread(target=self.move_thread, args=(state, action))
+      hilo.start()
+      hilo.join(timeout=10) #No puede demorar más de 10 segundos en dar un resultado, si es así muere
+      if hilo.is_alive(): return 1000 #Solución inviable
+      else: state = game.result(state, action)
       if game.terminal_test(state) and state.to_move == player: return -1000 #Hizo jaque mate
       elif game.terminal_test(state): return 1000 #Le hicieron jaque mate
       i += 1
