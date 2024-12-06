@@ -178,7 +178,7 @@ def ucb(n, C=1.4):
 import random
 
 #N es la cantidad de simulaciones
-def monte_carlo_tree_search(state, game, N=30, m=30):
+def monte_carlo_tree_search(state, game, N=20, m=20):
   def select(n):
     """Selecciona un nodo del árbol."""
     if n.children: return select(max(n.children.keys(), key=ucb)) #Retorna el mejor nodo
@@ -224,8 +224,8 @@ def monte_carlo_tree_search(state, game, N=30, m=30):
 
 """## Players"""
 
-def mcts_player(game, state):
-  return monte_carlo_tree_search(state, game)
+def mcts_player(game, state, n=20, m=20):
+  return monte_carlo_tree_search(state, game, N=n, m=m)
 
 def random_player(game, state):
   a = random.choice(game.actions(state))
@@ -256,7 +256,8 @@ else: #Si se le manda lo lee y en base a eso trabaja
     print("LOADED")
     for state in random_states:
       try:
-        move = mcts_player(qchess, state)
+        if len(sys.argv) == 4: move = mcts_player(qchess, state, int(sys.argv[2]), int(sys.argv[3]))
+        else: move = mcts_player(qchess, state)
         input_board = [1 if state.to_move == "W" else 0]
         input_board += qchess.convert_pieces(state.board)
         #mark_now = qchess.to_move(state) No se actualizará el movimiento
