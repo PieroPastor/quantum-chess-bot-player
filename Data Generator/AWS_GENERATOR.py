@@ -256,7 +256,7 @@ else: #Si se le manda lo lee y en base a eso trabaja
     print("LOADED")
     for state in random_states:
       try:
-        move = mcts_player(qchess, s)
+        move = mcts_player(qchess, state)
         input_board = [1 if state.to_move == "W" else 0]
         input_board += qchess.convert_pieces(state.board)
         #mark_now = qchess.to_move(state) No se actualizará el movimiento
