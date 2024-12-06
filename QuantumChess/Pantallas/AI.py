@@ -1,3 +1,5 @@
+import numpy as np
+
 from .Plays import *
 from Utils import *
 
@@ -33,23 +35,23 @@ def predict_move(model, board, turn, T):
     out = (adjusted_predictions['o_mov']+1, (int(b1/8), b1%8), (int(b2/8), b2%8), (int(e1/8), e1%8), (int(e2/8), e2%8), adjusted_predictions['o_pown'])
     return out #El movimiento predicho
 
-def predict_move_thread(model, board, turn, T, move, moves, done_flag, stopper):
+def predict_move_thread(model, board, turn, move, moves, done_flag, stopper):
     neo_board = []
     for i in range(8):
         for j in range(8):
             if board[i][j] == ".": neo_board.append(0)
             elif board[i][j][0:5] == BColors.WHITE: neo_board.append(1*ord(board[i][j][5]))
             elif board[i][j][0:5] == BColors.BLACK: neo_board.append(-1*ord(board[i][j][5]))
-
-    while stopper[0] == False and move[0] not in moves:
+    T = 0.1 #Temperatura inicial que se irá aumentando conforme falle
+    while stopper[0] == False and move[0] not in moves and T <= 1:
         pass
         #move[0] = predict_move(model, neo_board, turn, T)
+        #T += 0.1
+    if T > 1: move[0] = np.random.choice(moves) #Selecciona un movimiento aleatorio si no encontró uno
     done_flag[0] = True
 
 def main_ai(board, color):
     clock = pygame.time.Clock()
-    # Temperatura para el ajuste
-    T = 2.0  #Se variará dependiendo de los resultados obtenidos
     #model = tf.keras.models.load_model('Weights/weights.h5')
     model = None
     input_boxes = [
@@ -155,7 +157,7 @@ def main_ai(board, color):
 
         #Lanza el hilo si no hay hilo activo y no es el turno del jugador
         if not turn == player and thread is None:
-            thread = threading.Thread(target=predict_move_thread, args=(model, board.tablero, turn, T, move_ai, moves, done_flag, stopper))
+            thread = threading.Thread(target=predict_move_thread, args=(model, board.tablero, turn, move_ai, moves, done_flag, stopper))
             thread.start()
 
         #Si ya encontró una jugada posible, la realiza
