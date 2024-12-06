@@ -250,18 +250,21 @@ else: #Si se le manda lo lee y en base a eso trabaja
   print(sys.getsizeof(random_states), len(random_states))
   
   qchess = QuantumChess()
+  random.shuffle(random_states)
   with open("dataset.csv", mode="w", newline="") as archivo:
-    for s in random_states:
+    escritor_csv = csv.writer(archivo)
+    for state in random_states:
       try:
         move = mcts_player(qchess, s)
         input_board = [1 if state.to_move == "W" else 0]
         input_board += qchess.convert_pieces(state.board)
-        mark_now = qchess.to_move(state)
-        state = qchess.result(state, move)
+        #mark_now = qchess.to_move(state) No se actualizará el movimiento
+        #state = qchess.result(state, move) No necesitamos mover
         output_move = qchess.convert_move(move)
         escritor_csv.writerow(input_board+output_move)
       except Exception:
         pass
+    archivo.close()
 
   print("FIN")
   
