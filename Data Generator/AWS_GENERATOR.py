@@ -203,9 +203,9 @@ def monte_carlo_tree_search(state, game, N=20, m=20):
     i = 0 #Contador de iteraciones (para medir profundidad)
     while not game.terminal_test(state) and i < m: #Mientras que no se acabe
       action = random.choice(list(game.actions(state))) #Elige una accion aleatoria
-      hilo = threading.Thread(target=self.move_thread, args=(state, action))
+      hilo = threading.Thread(target=simul_thread, args=(state, action))
       hilo.start()
-      hilo.join(timeout=10) #No puede demorar más de 10 segundos en dar un resultado, si es así muere
+      hilo.join(timeout=5) #No puede demorar más de 5 segundos en dar un resultado, ya que es aleatorio, si es así muere
       if hilo.is_alive(): return 1000 #Solución inviable
       else: state = game.result(state, action)
       if game.terminal_test(state) and state.to_move == player: return -1000 #Hizo jaque mate
