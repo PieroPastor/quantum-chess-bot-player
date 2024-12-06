@@ -253,6 +253,7 @@ else: #Si se le manda lo lee y en base a eso trabaja
   random.shuffle(random_states)
   with open("dataset.csv", mode="w", newline="") as archivo:
     escritor_csv = csv.writer(archivo)
+    print("LOADED")
     for state in random_states:
       try:
         move = mcts_player(qchess, s)
