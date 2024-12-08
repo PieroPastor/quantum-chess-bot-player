@@ -257,13 +257,15 @@ if len(sys.argv) == 1: #Si no se le manda un pickle lo genera
 else: #Si se le manda lo lee y en base a eso trabaja
   with open(sys.argv[1], 'rb') as archivo:
       random_states = pickle.load(archivo)
+      archivo.close()
   print(sys.getsizeof(random_states), len(random_states))
   
   qchess = QuantumChess()
   random.shuffle(random_states)
   print("LOADED")
-  for state in random_states:
+  for i in range(len(random_states)-1, -1, -1):
     try:
+      state = random_states[i]
       with open("dataset.csv", mode="a", newline="") as archivo:
         escritor_csv = csv.writer(archivo)
         if len(sys.argv) == 4: move = mcts_player(qchess, state, int(sys.argv[2]), int(sys.argv[3]))
@@ -276,6 +278,10 @@ else: #Si se le manda lo lee y en base a eso trabaja
         output_move = qchess.convert_move(move)
         escritor_csv.writerow(input_board+output_move)
         archivo.close()
+      del random_states[i]
+      with open(sys.argv[1], 'wb') as archivo:
+        pickle.dump(random_states, archivo)
+        archivo.close() #Va borrando de la lista estados ya analizados
     except Exception:
       pass
 
