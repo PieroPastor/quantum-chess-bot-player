@@ -9,6 +9,6 @@ import numpy as np
 #import tensorflow as tf
 import threading
 import os
-bandera_de_comer_al_paso = False
-bandera_de_enroque = False
+#bandera_de_comer_al_paso = False
+#bandera_de_enroque = False
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Desactiva optimizaciones oneDNN

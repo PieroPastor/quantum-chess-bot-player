@@ -284,6 +284,8 @@ class Tablero:
         if yA < 0 or yA >= 8 or xA < 0 or xA >= 8: return
         if self.tablero[yA][xA] == "." or self.tablero[yA][xA][0:5] != turno: return  # Turno será de tipo BColor.WHITE o BColor.BLACK
         #Analiza si hay posibilidad de comer
+        simbolo = self.tablero[yA][xA][5]
+        pieza = self._GetPieza(simbolo, turno, yA, xA)
         if (self.tablero[yO1][xO1][0:5] == BColors.BLACK and turno == BColors.WHITE) or \
                 (self.tablero[yO1][xO1][0:5] == BColors.WHITE and turno == BColors.BLACK):
             self.Move(origen, destino1, turno, coronacion)
@@ -292,24 +294,33 @@ class Tablero:
                 (self.tablero[yO2][xO2][0:5] == BColors.WHITE and turno == BColors.BLACK):
             self.Move(origen, destino2, turno, coronacion)
             return
-        simbolo = self.tablero[yA][xA][5]
+        #simbolo = self.tablero[yA][xA][5]
         #En caso haya posibilidad de coronación
         if simbolo == "P" and (yO1 == 0 or yO1 == 7): self.Move(origen, destino1, turno, coronacion)
         if simbolo == "P" and (yO2 == 0 or yO2 == 7): self.Move(origen, destino2, turno, coronacion)
-        pieza = self._GetPieza(simbolo, turno, yA, xA)
+        #pieza = self._GetPieza(simbolo, turno, yA, xA)
         if not self.MovimientoPermitido(pieza, origen, destino1) or not self.MovimientoPermitido(pieza, origen, destino2): return
         if self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino1) \
                 or self._DejaEnJaque(pieza, self.rey_negro if pieza.color == BColors.BLACK else self.rey_blanco, origen, destino2): return  # No puede dejar al rey en jaque
         hay_slide1 = False
         hay_slide2 = False
+        mov2_valido = True
         misma_direccion = self.MismaFilaMovimientos(origen, destino1, destino2) #Indica que no hay relacion entre los splits
+        if pieza.MovimientoValido(self, origen, destino2):
+            if isinstance(pieza, Peon) and pieza.bandera_paso:
+                self.Move(origen, destino2, turno, coronacion)
+                return
+        else: mov2_valido = False
         if not pieza.MovimientoValido(self, origen, destino1):
             if not pieza.MovimientoValido(self, origen, destino1, necesita_camino=False): return  # Si falla aquí fue error no de bloqueo
             if not pieza.MovimientoValido(self, origen, destino2, necesita_camino=False): return # Para no hacer nada si fallaría aquí
             se_movio = self.Slide(origen, destino1, turno)  # Manda a analizar si puede hacer un slide
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
             hay_slide1 = True
-        if not pieza.MovimientoValido(self, origen, destino2):
+        elif isinstance(pieza, Peon) and pieza.bandera_paso:
+            self.Move(origen, destino1, turno, coronacion)
+            return
+        if not mov2_valido:
             if not pieza.MovimientoValido(self, origen, destino2, necesita_camino=False): return  # Si falla aquí fue error no de bloqueo
             se_movio = True
             if not hay_slide1:
@@ -326,7 +337,6 @@ class Tablero:
                 se_movio = self.Slide(origen, destino2, turno, 0.5) #Si no hubo slide antes, este será el primero
                 hay_slide2 = True
             if not se_movio: return  # No es cuántico y no hay camino, por lo que no hay entrelazamiento
-
         if (not hay_slide1 and hay_slide2) or (not hay_slide2 and hay_slide1):
             if hay_slide1 and not hay_slide2:
                 self.circuito.append(cirq.ISWAP(QubitAdministrator.qubits[yA*8+xA], QubitAdministrator.qubits[yO2*8+xO2])**0.5)
@@ -460,7 +470,7 @@ class Tablero:
                         if self.piezas[e] not in piezas:
                             piezas.append(self.piezas[e])
                             entrelazadas += self.piezas[e].historial
-            casillas = pieza.historial+atacado.historial+entrelazadas
+            casillas = pieza.historial+(atacado.historial if atacado is not None else [])+entrelazadas
             self._MergearHistorialesDePiezasRelacionadas(casillas, piezas)
             self.ColapsarCasillas(casillas) #Colapsará todo lo relacionado a esas casillas
             #Ahora tomará como origen el camino desde donde colapsó la pieza
@@ -517,6 +527,8 @@ class Tablero:
                             if mov == mov2: continue
                             coronacion = max(mov[1], mov2[1]) #Cualquiera que tenga coronacion la toma
                             moves.append((2, origen, 0, mov[0], mov2[0], coronacion, color)) #Bota split y toma los dos destinos
+        for p in self.piezas:
+            if isinstance(p, Peon): p.bandera_paso = False
         return moves
 
     def GenericMove(self, move):
