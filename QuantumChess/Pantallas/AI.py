@@ -38,7 +38,14 @@ def predict_move(model, board, turn, T):
     e1 = adjusted_predictions['o_end1']
     e2 = adjusted_predictions['o_end2']-1 #-1 porque empiezan por -1
     out = (adjusted_predictions['o_mov']+1, (int(b1/8), b1%8), (int(b2/8), b2%8), (int(e1/8), e1%8), (int(e2/8), e2%8), adjusted_predictions['o_pown'])
-    return out #El movimiento predicho
+    neo_out = [out[0], out[1]]
+    if out[0] == 3: neo_out.append(out[2])
+    else: neo_out.append(0)
+    neo_out.append(out[3])
+    if out[0] == 2: neo_out.append(out[4])
+    else: neo_out.append(0)
+    neo_out.append(0)
+    return tuple(neo_out) #El movimiento predicho
 
 def predict_move_thread(model, board, turn, move, moves, done_flag, stopper):
     neo_board = []
