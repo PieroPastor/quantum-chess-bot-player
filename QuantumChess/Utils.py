@@ -6,7 +6,7 @@ from copy import deepcopy
 import random
 import matplotlib.pyplot as plt
 import numpy as np
-#import tensorflow as tf
+import tensorflow as tf
 import threading
 import os
 #bandera_de_comer_al_paso = False

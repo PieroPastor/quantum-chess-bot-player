@@ -1,3 +1,5 @@
+import random
+
 from .Plays import *
 from Utils import *
 
@@ -9,22 +11,27 @@ def softmax_temperature(logits, temperature):
     return probabilities
 
 def apply_temperature(logits, temperature):
+    logits = logits[0]
     if temperature < 0.1: return np.argmax(logits) #Si no hay temperatura elige el máximo
     else: #Se selecciona con base a probabilidades si hay temperatura
         probabilites = softmax_temperature(logits, temperature)
         return np.random.choice(len(logits), p=probabilites)
 
 def predict_move(model, board, turn, T):
-    x = [turn] + board
+    x = [1 if turn == 'W' else 0] + board
     x = np.array(x)
+    x = np.expand_dims(x, axis=0) # Cambia la forma a (1, 65)
+    print(x.shape)
+    model.summary()
     predictions = model.predict(x)
+    print(predictions)
     adjusted_predictions = {
-        'o_mov': apply_temperature(predictions['o_mov'], T),
-        'o_beg1': apply_temperature(predictions['o_beg1'], T),
-        'o_beg2': apply_temperature(predictions['o_beg2'], T),
-        'o_end1': apply_temperature(predictions['o_end1'], T),
-        'o_end2': apply_temperature(predictions['o_end2'], T),
-        'o_pown': apply_temperature(predictions['o_pown'], T),
+        'o_mov': apply_temperature(predictions[0], T),
+        'o_beg1': apply_temperature(predictions[1], T),
+        'o_beg2': apply_temperature(predictions[2], T),
+        'o_end1': apply_temperature(predictions[3], T),
+        'o_end2': apply_temperature(predictions[4], T),
+        'o_pown': apply_temperature(predictions[5], T),
     }
     b1 = adjusted_predictions['o_beg1']
     b2 = adjusted_predictions['o_beg2']-1 #-1 porque empiezan por -1
@@ -42,16 +49,16 @@ def predict_move_thread(model, board, turn, move, moves, done_flag, stopper):
             elif board[i][j][0:5] == BColors.BLACK: neo_board.append(-1*ord(board[i][j][5]))
     T = 0.1 #Temperatura inicial que se irá aumentando conforme falle
     while stopper[0] == False and move[0] not in moves and T <= 1:
-        pass
-        #move[0] = predict_move(model, neo_board, turn, T)
-        #T += 0.1
-    if T > 1: move[0] = np.random.choice(moves) #Selecciona un movimiento aleatorio si no encontró uno
+        #pass
+        move[0] = predict_move(model, neo_board, turn, T)
+        T += 0.1
+    if T > 1: move[0] = random.choice(moves)  #Selecciona un movimiento aleatorio si no encontró uno
     done_flag[0] = True
 
 def main_ai(board, color):
     clock = pygame.time.Clock()
-    #model = tf.keras.models.load_model('Weights/weights.h5')
-    model = None
+    model = tf.keras.models.load_model('Weights/weights.h5')
+    #model = None
     input_boxes = [
         (pygame.Rect(50, 550, 100, 30), ""),  # Tipo de movimiento
         (pygame.Rect(160, 550, 50, 30), ""),  # Casilla 1
@@ -95,14 +102,14 @@ def main_ai(board, color):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 stopper[0] = True
-                thread.join()
+                if thread is not None: thread.join()
                 pygame.quit()
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if back_button_rect.collidepoint(event.pos):
                     stopper[0] = True
-                    thread.join()
+                    if thread is not None: thread.join()
                     return
 
             #Analiza jugadas del player
