@@ -155,6 +155,8 @@ def main_ai(board, color):
                                 turn = "B" if turn == "W" else "W"
                                 moves = board.GetMoves(turn)
                                 error_message = ""  # Borrar mensaje de error
+                                for i in range(len(input_boxes)):
+                                    input_boxes[i] = (input_boxes[i][0], "")
                             else:
                                 error_message = "Movimiento inválido."
                         else:
@@ -181,6 +183,7 @@ def main_ai(board, color):
             moves = board.GetMoves(turn)
             done_flag[0] = False
             thread = None
+            move_ai = [None]
 
         pygame.display.flip()
         clock.tick(60)

@@ -62,6 +62,8 @@ def main_player(board):
                             turn = "B" if turn == "W" else "W"
                             moves = board.GetMoves(turn)
                             error_message = ""  # Borrar mensaje de error
+                            for i in range(len(input_boxes)):
+                                input_boxes[i] = (input_boxes[i][0], "")  # Limpiar cajas de texto
                         else: error_message = "Movimiento inválido."
                     else:
                         error_message = "Por favor, complete todos los campos correctamente."
