@@ -3,6 +3,25 @@ import random
 from .Plays import *
 from Utils import *
 
+def tuplas_con_max_coincidencias(arreglo, nueva_tupla):
+    max_coincidencias = 0
+    mejores_tuplas = []
+
+    for tupla in arreglo:
+        coincidencias = 0
+        for i in range(min(len(tupla), len(nueva_tupla))):  # Comparar solo posiciones válidas
+            if tupla[i] == nueva_tupla[i]:  # Comparación estricta posición por posición
+                coincidencias += 1
+
+        if coincidencias > max_coincidencias:
+            max_coincidencias = coincidencias
+            mejores_tuplas = [tupla]
+        elif coincidencias == max_coincidencias:
+            mejores_tuplas.append(tupla)
+
+    return mejores_tuplas, max_coincidencias
+
+
 # Función para aplicar escalamiento de temperatura
 def softmax_temperature(logits, temperature):
     logits_scaled = logits / temperature  # Aplicamos temperatura
@@ -21,10 +40,8 @@ def predict_move(model, board, turn, T):
     x = [1 if turn == 'W' else 0] + board
     x = np.array(x)
     x = np.expand_dims(x, axis=0) # Cambia la forma a (1, 65)
-    print(x.shape)
     model.summary()
     predictions = model.predict(x)
-    print(predictions)
     adjusted_predictions = {
         'o_mov': apply_temperature(predictions[0], T),
         'o_beg1': apply_temperature(predictions[1], T),
@@ -44,7 +61,8 @@ def predict_move(model, board, turn, T):
     neo_out.append(out[3])
     if out[0] == 2: neo_out.append(out[4])
     else: neo_out.append(0)
-    neo_out.append(0)
+    neo_out.append(out[5])
+    neo_out.append(BColors.WHITE if turn == 'W' else BColors.BLACK)
     return tuple(neo_out) #El movimiento predicho
 
 def predict_move_thread(model, board, turn, move, moves, done_flag, stopper):
@@ -55,11 +73,21 @@ def predict_move_thread(model, board, turn, move, moves, done_flag, stopper):
             elif board[i][j][0:5] == BColors.WHITE: neo_board.append(1*ord(board[i][j][5]))
             elif board[i][j][0:5] == BColors.BLACK: neo_board.append(-1*ord(board[i][j][5]))
     T = 0.1 #Temperatura inicial que se irá aumentando conforme falle
+    max_iguales = 0
+    max_sol = None
+    mejores_similares = None
     while stopper[0] == False and move[0] not in moves and T <= 1:
-        #pass
         move[0] = predict_move(model, neo_board, turn, T)
         T += 0.1
-    if T > 1: move[0] = random.choice(moves)  #Selecciona un movimiento aleatorio si no encontró uno
+        similares, iguales = tuplas_con_max_coincidencias(moves, move[0])
+        if iguales > max_iguales:
+            max_iguales = iguales
+            max_sol = move[0]
+            mejores_similares = similares
+            T = 0.1
+    if T > 1 and max_sol is None and mejores_similares != []: move[0] = random.choice(moves)  #Selecciona un movimiento aleatorio si no encontró uno
+    elif T > 1:
+        move[0] = random.choice(mejores_similares)  #Lo completa con ciertas partes aleatorias, pero gran parte del movimiento está predicho
     done_flag[0] = True
 
 def main_ai(board, color):
