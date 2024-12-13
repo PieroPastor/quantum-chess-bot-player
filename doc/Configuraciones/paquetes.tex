@@ -25,8 +25,6 @@
 \usepackage{fancyhdr}
 \usepackage{lipsum}% 
 \usepackage{titlesec} % Para personalizar títulos de secciones
-\usepackage{tikz} % para los graficos
-\usepackage{adjustbox} % para que los graficos ocupen solo cierta dimension
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Configuracion de color para las secciones, subsecction y subsubsecction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,7 +38,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Encabezado
 \pagestyle{fancy}
-\fancyhf{}
+
 \setlength{\headheight}{1.5cm}
 \fancyhead[L]{\textcolor{pucpVerde}{\textsf{INTELIGENCIA ARTIFICIAL (1INF24)}}} % Texto en la izquierda
 \fancyhead[R]{
@@ -53,3 +51,12 @@
 % Personalizar la línea debajo del encabezado
 \renewcommand{\headrulewidth}{1pt}  % Cambia el grosor a 1.5pt
 \renewcommand{\headrule}{\hbox to\headwidth{\color{pucpColor}\leaders\hrule height \headrulewidth\hfill}}  % Cambia el color a azul
+% Agregamos lo que es subsubsubsection al trabajo
+% La forma más sencilla que encontré fue la siguiente, llamar al
+%subsubsubsection pero usando el paragrapah jejej
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\color{pucpVerde}\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
