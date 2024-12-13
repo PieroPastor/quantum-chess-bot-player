@@ -10,9 +10,9 @@ Por ser un proyecto dedicado a lo que son entornos de juego, dentro de sus simul
 Para el presente trabajo, hay que recalcar algunos detalles. En este caso específico, los datos usados para los experimentos detallados a continuación han tenido que ser generados por computadora, sometiendo al entorno de juego a experimentos usando tres tipos de casos con el fin de obtener datos suficientes y necesarios para entrenar la red neuronal que será la encargada de jugar al ajedrez cuántico. Con esta finalidad, se han definido dos tipos de jugadores: \textbf{Random Player} (es un jugador que toma decisiones completamente aleatorias, no hace un análisis altamente profundo y representa a los jugadores muy novatos en el ajedrez, permitiendo una generación de datos altamente veloz) y \textbf{Montecarlo Player} (representa a jugadores más experimentados haciendo un análisis profundo de las situaciones de juego; cabe resaltar que, debido al análisis que realizará, el procesado de las jugadas será mucho más lento que en el tipo de jugador previamente mencionado). Finalmente, las formas en las cuales se han conseguido los datos han sido las siguientes:
 
 \begin{enumerate}
-    \item Random Player vs Random Player: 
-    \item Ramdom Player vs Montecarlo Player:
-    \item Montecarlo Player vs Montecarlo Player: 
+    \item Random Player vs Random Player: Enfrenta a 2 jugadores poco experimentados como parte de los casos de prueba
+    \item Ramdom Player vs Montecarlo Player: Enfrenta 1 jugador experimentado y un novato simulando el segundo tipo de casos de prueba
+    \item Montecarlo Player vs Montecarlo Player: Simula partidas de Jugadores más experimentados considerando el tercer y último caso de prueba contemplado en el documento. 
 \end{enumerate}
 
 Con la finalidad de optimizar la ejecución y la obtención de datos, se ha tenido que realizar estas ejecuciones de manera independiente, en diversas líneas de ejecución. Además, debido al tamaño de las ejecuciones, después de haber terminado una simulación, se han tenido que eliminar los datos en caché de las simulaciones previas a medida que avanzan, para poder realizar las simulaciones con mayor eficacia.
@@ -125,3 +125,4 @@ Según la mediana del boxplot, se tiene un 91\% de 1-MAE; por lo que se tienen m
     \parbox[c]{2cm}{\centering Coronación:\\ \includegraphics[width=2cm, height=2cm]{Imagenes/vvvvv.png}} \\
 \end{tabular}
 \end{center}
+Como es posible apreciar, en todo lo que llega a implicar tanto Merge como Movimiento, las predicciones son muy acertadas según la matriz de confusión y tomando de apoyo las curvas previamente obtenidas; no obstante, al no haber demasiada información relacionada con el segundo destino, se obtuvo un desempeño ligeramente menor al esperado. Esto mismo sucede con la coronación; pero, si se desarrolla un dataset más grande, que analice y tome en cuenta una mayor cantidad de posibilidades, este problema se habrá solucionado.

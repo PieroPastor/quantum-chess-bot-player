@@ -74,7 +74,7 @@ Es solo un movimiento que, a nivel lógico, permite que se encuentre en esa posi
 \subsection{Montecarlo Tree Search}
 Cumple la función de jugar de manera aceptable el juego. No obstante, se tendrá que limitar tanto su ramificación como su longitud de simulación, debido a la cantidad exorbitante de movimientos posibles a partir de un estado.
 
-El algoritmo de monte carlo utilizará como función objetivo la menor cantidad de movimientos para poder ganar la partida. No obstante, también se hará uso de una heurística, esto porque aparte de guiar el camino para la solución; como muy probablemente el árbol no pueda llegar a simular hasta tener el coste total, entonces la heurística al ser optimista llevará por caminos según su propiedad.\newline
+El algoritmo de monte carlo utilizará como función objetivo la menor cantidad de movimientos para poder ganar la partida. No obstante, también se hará uso de una heurística, esto porque aparte de guiar el camino para la solución; como muy probablemente el árbol no pueda llegar a simular hasta tener el coste total, entonces la heurística al ser optimista llevará por caminos, según su propiedad.\newline
 
 $h1(n)$ = Puntaje del jugador en base al valor de cada pieza.\\
 
@@ -105,7 +105,7 @@ Las especificaciones de la instancia generada son:
     \item \textbf{Almacenamiento:} 20 GiB - gp3.
 \end{itemize}
 
-Se seleccionó la distribución de Amazon Linux, ya que resulta más liviana en comparación a distribuciones más conocidas y populares como Ubuntu. Además que está optimizada para operaciones de cómputo grandes en el servicio EC2.\newline
+Se seleccionó la distribución de Amazon Linux, ya que resulta más liviana en comparación a distribuciones más conocidas y populares como Ubuntu. Además, está optimizada para operaciones de cómputo grandes en el servicio EC2.\newline
 El tipo de instancia, se seleccionó bajo el mismo criterio de soporte para un cómputo pesado, esto bajo las limitaciones del laboratorio de AWS Academy.
 
 \subsubsection{Entrada}
@@ -168,7 +168,7 @@ Destino 2   & Valor de 0 a 63 & -1\\\hline
     \end{tabular}    
 \end{center}
 
-La data no llevará un tratamiento especial, ya que, como es generada por el computador, esta ya está completa y es fiable por el algoritmo que la generó
+La data no llevará un tratamiento especial, ya que, como es generada por el computador, esta ya está completa y es fiable por el algoritmo que la generó.
 
 \subsection{Multi Layer Neural Network with Output Heads}
 
@@ -198,7 +198,7 @@ $P(f,T) = 1 - \dfrac{1}{1+\alpha\times T\times(1-f)}$, donde:
     \includegraphics[scale=0.4]{Imagenes/BMSA.png}
 \end{center}
 
-Por otro lado ambos metaheurísticos tendrán la misma función de fitness; esta función es $Fo(m,t)=\dfrac{m}{1+\alpha t}$
+Por otro lado ambos metaheurísticos, tendrán la misma función de fitness; esta función es $Fo(m,t)=\dfrac{m}{1+\alpha t}$
 
 \begin{itemize}
     \item $Fo =$ Fitness.
@@ -216,7 +216,7 @@ Otra forma de entenderlo es:
 \includegraphics[scale=0.2]{Imagenes/second_pseudocode.png}
 \end{center}
 \subsection{Bat Algorithm}
-Se basa en la ecolocalización de los murciélagos para así poder llegar a la solución más óptima, esto porque mediante la técnica previamente mencionada se llaman unos a otros y comienzan a viajar a ciertos puntos para conseguir la mejor solución. En este caso sería la cantidad de neuronas por capa. Este algoritmo proporcionará la explotación al SBMA, como únicamente se encarga de ajustar velocidades y puntos de cada murciélago; mejorará ese conjunto de soluciones lo más posible en base a un mejor local.
+Se basa en la ecolocalización de los murciélagos para así, poder llegar a la solución más óptima, esto porque mediante la técnica previamente mencionada se llaman unos a otros y comienzan a viajar a ciertos puntos para conseguir la mejor solución. En este caso, sería la cantidad de neuronas por capa. Este algoritmo proporcionará la explotación al SBMA, como únicamente se encarga de ajustar velocidades y puntos de cada murciélago; mejorará ese conjunto de soluciones lo más posible en base a un mejor local.
 
 \subsection{Memetic Algorithm}
 
@@ -227,12 +227,13 @@ Se programó el Greedy Search para poder comparar el desempeño del algoritmo h�
 No obstante, se modificó la inicialización de datos, ya que, no partirá de entradas dadas por el usuario, sino las generará aleatoriamente para proporcionarle algo más de explotación, y ya luego se ajustará sin problemas probando las combinaciones respectivas.
 
 \subsection{Despliegue}
-El uso de la red neuronal será únicamente sus pesos para poder predecir a partir de un tablero dado, que movimiento realizar. Para esto, se realizará un despliegue dentro de Python para que se pueda jugar con un tablero elaborado en Pygame; la metodología de juego será por turnos donde empezará el jugador con las blancas, y la red neuronal será las negras, o como lo seleccione el usuario.\newline
-Además se plantea el uso de calor en las predicciones para poder variar en los resultados, y además de no jugar siempre igual; en caso haya una predicción errónea que contraiga un movimiento imposible, se volverá a predecir hasta llegar a una solución permitida. En caso se falle muchas veces, se procederá a tomar una decisión aleatoria, pero se irán guardando componentes coherentes para que la aleatoriedad únicamente afecte a ciertas partes del vector movimiento, y que no sea una decisión completamente aleatoria.
+El uso de la red neuronal será únicamente para sus pesos, para poder predecir, a partir de un tablero dado, qué movimiento realizar. Para esto, se realizará un despliegue dentro de Python para que se pueda jugar con un tablero elaborado en Pygame; la metodología de juego será por turnos, donde empezará el jugador con las blancas y la red neuronal será las negras, o como lo seleccione el usuario.\newline
+Además, se plantea el uso de "temperatura" en las predicciones para poder variar los resultados y evitar jugar siempre de la misma manera; en caso haya una predicción errónea que contraiga un movimiento imposible, se volverá a predecir hasta llegar a una solución permitida. En caso de fallar muchas veces, se procederá a tomar una decisión aleatoria, pero se irán guardando componentes coherentes para que la aleatoriedad únicamente afecte a ciertas partes del vector de movimiento, y no sea una decisión completamente aleatoria.
+
 
 \subsection{Función de calor}
 
-La función de calor lo que hará será generar probabilidades para poder tomar otras posibles soluciones, similarmente buenas que la mejor. Esto porque la probabilidad de que se seleccione una de ellas, es directamente proporcional, al porcentaje que predijo la red neuronal. Para cada probabilidad de seleccionar un resultado en el arreglo de estos, se le aplicará la función:
+Su función será generar probabilidades para poder tomar otras posibles soluciones, similarmente buenas a la mejor encontrada. Esto debido a que, la probabilidad de seleccionar una de ellas, es directamente proporcional, al porcentaje predicho por la red neuronal. Para cada probabilidad de seleccionar un resultado en el arreglo de estos, se le aplicará la función:
 
 $P(L_i,T) = \frac{e^{\frac{L_i}{T} - max(\frac{L}{T})}}{\sum_{i=1}^{n} (e ^{ \frac{L_i}{T} - max( \frac{L}{T}) })}$, donde:
 
