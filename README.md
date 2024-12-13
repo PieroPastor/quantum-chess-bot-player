@@ -26,17 +26,29 @@ A neural network that learns to play quantum chess using Monte Carlo tree search
 Clone the repository and install the dependencies:
 
 ```bash
-git clone https://github.com/PieroPastor/quantum-chess-player.git
-cd quantum-chess-player
+git clone https://github.com/PieroPastor/quantum-chess-bot-player.git
+cd quantum-chess-bot-player
 pip install -r requirements.txt
 ```
 ## Usage
-
+To run the game on Pygame you have to execute the .py file inside the Python project:
+```bash
+cd quantum-chess-bot-player
+cd QuantumChess
+```
+Windows:
+```bash
+python QuantumChessPygame.py
+```
+Linux:
+```bash
+python3 QuantumChessPygame.py
+```
 ## Features
 - Monte Carlo Tree Search for decision making
 - Fully implemented quantum chess mechanics
 - Trained neural network for smart moves
-- Bat Algorithm for hyper parameters optimization
+- Hybrid algorithm (SBMA) for hyper parameters optimization
 - Built with Cirq for quantum simulation
 
 ## Contributing
