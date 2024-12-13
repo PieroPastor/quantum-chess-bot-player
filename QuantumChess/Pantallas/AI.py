@@ -38,7 +38,7 @@ def predict_move(model, board, turn, T):
     x = [1 if turn == 'W' else 0] + board
     x = np.array(x)
     x = np.expand_dims(x, axis=0) # Cambia la forma a (1, 65)
-    predictions = model.predict(x)
+    predictions = model.predict(x, verbose=0)
     adjusted_predictions = {
         'o_mov': apply_temperature(predictions[0], T),
         'o_beg1': apply_temperature(predictions[1], T),
