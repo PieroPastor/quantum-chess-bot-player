@@ -1,7 +1,8 @@
 from .Constants import *
 
 def draw_board(board):
-    """Dibujar el tablero de ajedrez."""
+    """Dibujar el tablero de ajedrez con etiquetas de filas y columnas."""
+    # Dibujar el tablero
     for row in range(8):
         for col in range(8):
             rect = pygame.Rect(
@@ -13,6 +14,7 @@ def draw_board(board):
             color = WHITE if (row + col) % 2 == 0 else GRAY
             pygame.draw.rect(screen, color, rect)
 
+            # Dibujar las piezas
             piece = board[row][col]
             if piece != ".":
                 screen.blit(
@@ -20,13 +22,41 @@ def draw_board(board):
                     rect.topleft,
                 )
 
+    # Dibujar etiquetas de las filas (A-H) al lado derecho del tablero
+    for row in range(8):
+        label = font.render(chr(65 + row), True, BLACK)  # A = 65 en ASCII
+        screen.blit(
+            label,
+            (
+                BOARD_OFFSET + 8 * SQUARE_SIZE + 5,  # Justo al lado del tablero
+                BOARD_OFFSET + row * SQUARE_SIZE + SQUARE_SIZE // 2 - label.get_height() // 2,
+            ),
+        )
+
+    # Dibujar etiquetas de las columnas (1-8) debajo del tablero
+    for col in range(8):
+        label = font.render(str(col + 1), True, BLACK)  # 1 a 8
+        screen.blit(
+            label,
+            (
+                BOARD_OFFSET + col * SQUARE_SIZE + SQUARE_SIZE // 2 - label.get_width() // 2,
+                BOARD_OFFSET + 8 * SQUARE_SIZE + 5,  # Justo debajo del tablero
+            ),
+        )
+
 def draw_text_boxes(input_boxes, active_index):
     """Dibujar las cajas de texto."""
+    y_offset = 10  # Desplazamiento vertical adicional, ajusta según sea necesario.
+
     for i, (rect, text) in enumerate(input_boxes):
+        # Crear una nueva posición ajustada hacia abajo
+        adjusted_rect = rect.move(0, y_offset)
+        # Dibujar el borde de la caja de texto
         color = BLUE if i == active_index else BLACK
-        pygame.draw.rect(screen, color, rect, 2)
+        pygame.draw.rect(screen, color, adjusted_rect, 2)
+        # Dibujar el texto dentro de la caja
         text_surface = font.render(text, True, BLACK)
-        screen.blit(text_surface, (rect.x + 5, rect.y + 5))
+        screen.blit(text_surface, (adjusted_rect.x + 5, adjusted_rect.y + 5))
 
 def draw_button(button_rect, text, color=WHITE, text_col=BLACK):
     """Dibujar un botón."""

@@ -19,6 +19,8 @@ def main_player(board):
         if len(moves) == 0:
             show_alert("Jaque mate")
             print("Jaque mate")
+            time.sleep(2)
+            return
 
         screen.fill(GRAY)  # Fondo gris claro
 
@@ -80,6 +82,8 @@ def main_player(board):
                             turn = "B" if turn == "W" else "W"
                             moves = board.GetMoves(turn)
                             error_message = ""  # Borrar mensaje de error
+                            for i in range(len(input_boxes)):
+                                input_boxes[i] = (input_boxes[i][0], "")
                         else:
                             error_message = "Movimiento inválido."
                     else:

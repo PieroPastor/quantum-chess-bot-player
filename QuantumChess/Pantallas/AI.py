@@ -113,6 +113,8 @@ def main_ai(board, color):
         if len(moves) == 0:
             show_alert("Jaque mate")
             print("Jaque mate")
+            time.sleep(2)
+            return
         screen.fill(GRAY)  # Fondo gris claro
 
         # Dibujar el tablero
@@ -165,6 +167,8 @@ def main_ai(board, color):
                                     turn = "B" if turn == "W" else "W"
                                     moves = board.GetMoves(turn)
                                     error_message = ""  # Borrar mensaje de error
+                                    for i in range(len(input_boxes)):
+                                        input_boxes[i] = (input_boxes[i][0], "")
                                 else: error_message = "Movimiento inválido."
                             else:
                                 error_message = "Por favor, complete todos los campos correctamente."

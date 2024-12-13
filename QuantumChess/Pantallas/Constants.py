@@ -1,5 +1,4 @@
-import pygame
-import sys
+from Utils import *
 from Piezas import BColors
 
 # Configuración inicial

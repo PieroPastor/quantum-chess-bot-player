@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import threading
+import pygame
+import time
 import os
 #bandera_de_comer_al_paso = False
 #bandera_de_enroque = False
