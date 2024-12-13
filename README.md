@@ -48,7 +48,7 @@ python3 QuantumChessPygame.py
 - Monte Carlo Tree Search for decision making
 - Fully implemented quantum chess mechanics
 - Trained neural network for smart moves
-- Bat Algorithm for hyper parameters optimization
+- Hybrid algorithm (SBMA) for hyper parameters optimization
 - Built with Cirq for quantum simulation
 
 ## Contributing
