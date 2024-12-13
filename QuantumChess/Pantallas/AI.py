@@ -1,5 +1,3 @@
-import random
-
 from .Plays import *
 from Utils import *
 
@@ -40,7 +38,6 @@ def predict_move(model, board, turn, T):
     x = [1 if turn == 'W' else 0] + board
     x = np.array(x)
     x = np.expand_dims(x, axis=0) # Cambia la forma a (1, 65)
-    model.summary()
     predictions = model.predict(x)
     adjusted_predictions = {
         'o_mov': apply_temperature(predictions[0], T),
