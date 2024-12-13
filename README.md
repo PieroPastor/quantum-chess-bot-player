@@ -31,7 +31,7 @@ cd quantum-chess-bot-player
 pip install -r requirements.txt
 ```
 ## Usage
-To run the game on Pygame you have to execute de .py with the main:
+To run the game on Pygame you have to execute the .py file inside the Python project:
 ```bash
 cd quantum-chess-bot-player
 cd QuantumChess
