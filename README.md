@@ -52,7 +52,7 @@ python3 QuantumChessPygame.py
 - Built with Cirq for quantum simulation
 
 ## Contributing
-Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute. For major changes, please discuss what you would like to change beforehand to ensure it aligns with the project's goals.
+Contributions are welcome! Please open an issue or submit a pull request if you'd like to contribute. For major changes, please discuss what you would like to change beforehand to ensure it aligns with the project's goals
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
